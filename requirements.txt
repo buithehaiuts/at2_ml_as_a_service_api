@@ -8,3 +8,6 @@ python-dotenv
 tqdm
 typer
 fastapi
+streamlit==1.36.0
+pandas==2.2.2
+scikit-learn==1.5.1

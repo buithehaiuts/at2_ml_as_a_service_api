@@ -12,4 +12,7 @@ app = FastAPI()
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
-
+    
+@app.get("/deploy")
+async def home_root():
+    return {"message":"render deployment"}

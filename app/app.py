@@ -15,8 +15,4 @@ def read_root():
     
 @app.get("/deploy")
 async def home_root():
-<<<<<<< HEAD
     return {"message":"render deployment"}
-=======
-    return {"message":"render deployment"}
->>>>>>> a859eadf207ad47733c8c74cb6f8cb962e60c666

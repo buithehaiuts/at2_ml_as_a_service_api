@@ -1,17 +1,29 @@
-from fastapi import FastAPI
+import streamlit as st
+import requests
 
-# Instantiate a FastAPI class
-app = FastAPI()
+# Streamlit app layout
+st.title("Streamlit Frontend for FastAPI")
 
-# Create a GET endpoint for the root ("/") path
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+# Input fields for mock data
+feature1 = st.number_input("Feature 1", value=0.0)
+feature2 = st.number_input("Feature 2", value=0.0)
 
-# Create a GET endpoint for the "/deploy" path
-@app.get("/deploy")
-async def home_root():
-    return {"message": "Render deployment"}
+# Prepare input data as a dictionary
+input_data = {
+    'feature1': feature1,
+    'feature2': feature2
+}
 
-# To run the FastAPI app, use the following command:
-# uvicorn your_file_name:app --reload
+# Button to trigger prediction
+if st.button("Get Prediction"):
+    # Call FastAPI for prediction
+    with st.spinner("Calling FastAPI..."):
+        url = "http://127.0.0.1:8000/predict"  # FastAPI predict endpoint
+        response = requests.post(url, json=input_data)
+        
+        # Show prediction
+        if response.status_code == 200:
+            prediction = response.json().get('prediction', 'No prediction found.')
+            st.success(f"Prediction: {prediction}")
+        else:
+            st.error(f"Error: {response.status_code}")

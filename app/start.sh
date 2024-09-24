@@ -1,17 +1,1 @@
-app
-.gitkeep
-api.py
-app.py
-models
-myenv
-.gitignore
-Dockerfile
-Makefile
-README.md
-__init__.py
-docker-compose.yml
-github.txt
-pyproject.toml
-render.txt
-requirements.txt
-setup.cfg
+uvicorn api:app --host 0.0.0.0 --port 8000

@@ -5,10 +5,10 @@ import requests
 st.title("Sales Revenue Forecasting and Prediction")
 
 # Organize sections into tabs
-tabs = st.tabs(["API Health Check", "National Sales Forecast", "Store & Item Prediction", "Instructions"])
+selected_tab = st.sidebar.radio("Navigation",["API Health Check", "National Sales Forecast", "Store & Item Prediction", "Instructions"])
 
 # Tab 1: API Health Check
-with tabs[0]:
+if selected_tab =="API Health Check":
     st.header("API Health Check")
     
     if st.button("Check API Health"):
@@ -21,7 +21,7 @@ with tabs[0]:
             st.error(f"Error: {response.status_code}")
 
 # Tab 2: National Sales Forecast
-with tabs[1]:
+if selected_tab =="National Sales Forecast":
     st.header("National Sales Forecast")
     
     # Input field for date
@@ -40,7 +40,7 @@ with tabs[1]:
             st.error(f"Error: {response.status_code}")
 
 # Tab 3: Store & Item Sales Prediction
-with tabs[2]:
+if selected_tab =="Store & Item Prediction":
     st.header("Store and Item Sales Prediction")
     
     # Input fields for store ID, item ID, and date
@@ -70,7 +70,7 @@ with tabs[2]:
                 st.error(f"Error: {response.status_code}")
 
 # Tab 4: Instructions
-with tabs[3]:
+if selected_tab =="Instructions":
     st.header("Instructions and Notes")
     
     st.markdown("""

@@ -45,15 +45,15 @@ def get_test_urls() -> List[str]:
 train_data: Optional[pd.DataFrame] = None
 test_data: Optional[pd.DataFrame] = None
 
-@app.get("/")
+@app.get("/", status_code=200)
 async def root():
     return {"message": "Welcome to the Sales Revenue Forecasting and Prediction API"}
 
-@app.get("/health")
+@app.get("/health", status_code=200)
 async def health_check():
     return {"status": "healthy"}
 
-@app.get("/train")
+@app.get("/train", status_code=200)
 async def get_train_data():
     global train_data
     if train_data is None:
@@ -63,7 +63,7 @@ async def get_train_data():
             raise HTTPException(status_code=500, detail="Failed to load train data: " + str(e.detail))
     return train_data.to_dict(orient="records")
 
-@app.get("/test")
+@app.get("/test", status_code=200)
 async def get_test_data():
     global test_data
     if test_data is None:

@@ -4,21 +4,23 @@ services:
   fastapi:
     build:
       context: .
-      dockerfile: Dockerfile.fastapi  # Use the Dockerfile for FastAPI
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ./app:/app  # Maps the app folder from host to container
+      - ./app:/app
     environment:
       - PYTHONUNBUFFERED=1
 
   streamlit:
     build:
       context: .
-      dockerfile: Dockerfile.streamlit  # Use the Dockerfile for Streamlit
+      dockerfile: Dockerfile
     ports:
       - "8501:8501"
     volumes:
-      - ./app:/app  # Maps the app folder from host to container
+      - ./app:/app
     environment:
       - PYTHONUNBUFFERED=1
+      - FASTAPI_URL=http://fastapi:8000  # Point to the FastAPI service
+    command: ["streamlit", "run", "/app/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

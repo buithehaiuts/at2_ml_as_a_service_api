@@ -17,7 +17,7 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change as needed for production
+    allow_origins=["*"],  # Change this as needed for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -117,7 +117,7 @@ def load_model() -> object:
 @app.post("/sales/stores/items/")
 async def predict_sales(request: SalesPredictionRequest):
     # Load the model if not loaded
-    model = load_model()
+    load_model()  # Call the function to load the model
     
     # Prepare input data for prediction
     input_data = {
@@ -129,7 +129,7 @@ async def predict_sales(request: SalesPredictionRequest):
     # Placeholder for model prediction logic
     try:
         # Ensure the input_data format is compatible with your model
-        prediction = model.predict([input_data])  # Modify based on your model's input format
+        prediction = model.predict(pd.DataFrame([input_data]))  # Modify based on your model's input format
         return {"prediction": prediction[0] if len(prediction) > 0 else None}
     except Exception as e:
         logger.error(f"Prediction failed: {str(e)}")

@@ -1,5 +1,9 @@
 import streamlit as st
 import requests
+import os
+
+# Base URL of the FastAPI backend
+BASE_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")  # Use environment variable or localhost for local testing
 
 # Streamlit app layout
 st.title("Sales Revenue Forecasting and Prediction")
@@ -13,7 +17,7 @@ if selected_tab == "API Health Check":
     
     # Health check button
     if st.button("Check API Health"):
-        url = "/health"  # Health check endpoint
+        url = f"{BASE_URL}/health"  # Health check endpoint
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
@@ -30,7 +34,7 @@ if selected_tab == "National Sales Forecast":
     
     # Button to trigger forecast
     if st.button("Get National Forecast"):
-        url = f"/sales/national?date={date_forecast}"  # Ensure the endpoint is correct
+        url = f"{BASE_URL}/sales/national?date={date_forecast}"  # Use the full endpoint
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
@@ -63,7 +67,7 @@ if selected_tab == "Store & Item Prediction":
     # Button to trigger prediction
     if st.button("Get Item Prediction"):
         with st.spinner("Calling FastAPI..."):
-            url = "/sales/stores/items/"  # Ensure this endpoint is correct
+            url = f"{BASE_URL}/sales/stores/items/"  # Use the full endpoint for predictions
             try:
                 response = requests.post(url, json=input_data)  # Use POST for predictions
                 response.raise_for_status()  # Raise an error for bad responses
@@ -96,4 +100,3 @@ if selected_tab == "Instructions":
     - Ensure that the API is running before making requests.
     - Input the correct store ID, item ID, and date formats.
     """)
-

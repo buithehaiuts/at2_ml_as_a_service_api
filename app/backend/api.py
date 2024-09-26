@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import pandas as pd
 import requests
 import pickle
+import os
 
 app = FastAPI()
 
@@ -45,6 +46,9 @@ def get_test_urls() -> List[str]:
 train_data: Optional[pd.DataFrame] = None
 test_data: Optional[pd.DataFrame] = None
 
+# Placeholder for a pre-trained model
+model: Optional[object] = None
+
 @app.get("/", status_code=200)
 async def root():
     return {"message": "Welcome to the Sales Revenue Forecasting and Prediction API"}
@@ -79,9 +83,34 @@ class SalesPredictionRequest(BaseModel):
     store_id: int
     item_id: int
 
+# Helper function to load model
+def load_model() -> object:
+    global model
+    if model is None:
+        # Load your actual model here, e.g., using pickle or joblib
+        model_path = "path/to/your_model.pkl"  # Change to your actual model path
+        if os.path.exists(model_path):
+            with open(model_path, "rb") as f:
+                model = pickle.load(f)
+        else:
+            raise HTTPException(status_code=500, detail="Model not found.")
+    return model
+
 @app.post("/sales/stores/items/")
 async def predict_sales(request: SalesPredictionRequest):
+    # Load the model if not loaded
+    model = load_model()
+    
+    # Prepare input data for prediction
+    input_data = {
+        'date': request.date,
+        'store_id': request.store_id,
+        'item_id': request.item_id
+    }
+
     # Placeholder for model prediction logic
-    prediction = 19.72  # Dummy prediction
-    # Here you would call your trained model to get the actual prediction based on request data
-    return {"prediction": prediction}
+    # Assuming you have a `predict` method for the loaded model
+    prediction = model.predict([input_data])  # Modify based on your model's input format
+
+    # Return prediction
+    return {"prediction": prediction[0]}

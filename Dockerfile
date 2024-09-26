@@ -8,10 +8,10 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install the dependencies
-RUN pip install --no-cache-dir -r requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire 'app' folder from the host to the '/app' folder in the container
-COPY ./app /app
+# Copy the entire project (not just app) to the container
+COPY . /app
 
 # Expose the port that Streamlit will run on
 EXPOSE 8501

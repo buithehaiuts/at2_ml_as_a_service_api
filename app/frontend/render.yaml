@@ -6,10 +6,10 @@ services:
     env: python
     plan: free  # You can also specify "starter", "standard", etc.
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "streamlit run app/frontend/app.py --server.port $PORT"
+    startCommand: "streamlit run app.py --server.port $PORT"  # Adjusted path to match the location of app.py
     envVars:
       - key: FASTAPI_URL
-        value: http://localhost:8000
+        value: http://fastapi-backend:$PORT  # Use the service name for internal communication
     healthCheckPath: "/"
     autoDeploy: true
     regions: 
@@ -20,4 +20,8 @@ services:
     env: python
     plan: free
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn app.main:app
+    startCommand: "uvicorn app.api:app --host 0.0.0.0 --port $PORT"  # Ensure you bind to 0.0.0.0
+    healthCheckPath: "/health"  # Health check for FastAPI
+    autoDeploy: true
+    regions: 
+      - oregon  # Match region with frontend for better performance

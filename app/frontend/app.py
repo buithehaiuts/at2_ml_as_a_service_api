@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Set the API URL for the FastAPI backend
-API_URL = "https://at2-ml-as-a-service-api.onrender.com"  # Your FastAPI backend URL
+API_URL = "https://<your-backend-url>.onrender.com"  # Replace with your FastAPI backend URL
 
 # Streamlit app layout
 st.title("Sales Revenue Forecasting and Prediction")
@@ -15,7 +15,7 @@ if selected_tab == "API Health Check":
     st.header("API Health Check")
     
     if st.button("Check API Health"):
-        url = f"{API_URL}/health"  # Check health endpoint in the FastAPI backend
+        url = f"{API_URL}/health"  # Health check endpoint
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
@@ -37,7 +37,6 @@ if selected_tab == "National Sales Forecast":
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
             
-            # Check for empty response
             if response.text:
                 forecast = response.json()
                 st.success("7-day Sales Forecast:")
@@ -68,16 +67,14 @@ if selected_tab == "Store & Item Prediction":
         with st.spinner("Calling FastAPI..."):
             url = f"{API_URL}/sales/stores/items/"  # Ensure this endpoint is correct
             try:
-                response = requests.post(url, json=input_data)  # Use POST instead of GET
+                response = requests.post(url, json=input_data)  # Use POST for predictions
                 response.raise_for_status()  # Raise an error for bad responses
                 
-                # Check for empty response
                 if response.text:
                     prediction = response.json().get('prediction', 'No prediction found.')
                     st.success(f"Prediction: {prediction}")
                 else:
                     st.error("Received an empty response from the API.")
-                    
             except requests.exceptions.RequestException as e:
                 st.error(f"Error: {e}")
 
@@ -100,6 +97,5 @@ if selected_tab == "Instructions":
     ### Important Notes:
     - Ensure that the API is running before making requests.
     - Input the correct store ID, item ID, and date formats.
-    - For testing purposes, the app is configured to connect to `https://at2-ml-as-a-service-api.onrender.com`.
+    - For testing purposes, the app is configured to connect to your FastAPI backend.
     """)
-

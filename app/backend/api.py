@@ -87,7 +87,6 @@ class SalesPredictionRequest(BaseModel):
 def load_model() -> object:
     global model
     if model is None:
-        # Load your actual model here, e.g., using pickle or joblib
         model_path = "path/to/your_model.pkl"  # Change to your actual model path
         if os.path.exists(model_path):
             with open(model_path, "rb") as f:
@@ -110,7 +109,10 @@ async def predict_sales(request: SalesPredictionRequest):
 
     # Placeholder for model prediction logic
     # Assuming you have a `predict` method for the loaded model
-    prediction = model.predict([input_data])  # Modify based on your model's input format
+    try:
+        prediction = model.predict([input_data])  # Modify based on your model's input format
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
     # Return prediction
-    return {"prediction": prediction[0]}
+    return {"prediction": prediction[0] if len(prediction) > 0 else None}

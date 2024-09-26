@@ -5,8 +5,23 @@ import pandas as pd
 import requests
 import pickle
 import os
+import logging
+from fastapi.middleware.cors import CORSMiddleware
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change as needed for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Function to download a file from GitHub and load it
 def load_data_from_github(file_url: str) -> pd.DataFrame:
@@ -14,6 +29,7 @@ def load_data_from_github(file_url: str) -> pd.DataFrame:
     if response.status_code == 200:
         return pickle.loads(response.content)
     else:
+        logger.error(f"Failed to download file from {file_url}: {response.status_code}")
         raise HTTPException(status_code=response.status_code, detail="Failed to download file")
 
 # Function to load and merge multiple pickle files
@@ -24,7 +40,7 @@ def load_and_merge_data(urls: List[str]) -> pd.DataFrame:
             df = load_data_from_github(url)
             dataframes.append(df)
         except HTTPException as e:
-            print(f"Error loading data from {url}: {e.detail}")
+            logger.warning(f"Error loading data from {url}: {e.detail}")
     if not dataframes:
         raise HTTPException(status_code=500, detail="No data loaded from any URL")
     return pd.concat(dataframes, ignore_index=True)
@@ -64,7 +80,8 @@ async def get_train_data():
         try:
             train_data = load_and_merge_data(get_train_urls())
         except HTTPException as e:
-            raise HTTPException(status_code=500, detail="Failed to load train data: " + str(e.detail))
+            logger.error("Failed to load train data: " + str(e.detail))
+            raise HTTPException(status_code=500, detail="Failed to load train data")
     return train_data.to_dict(orient="records")
 
 @app.get("/test", status_code=200)
@@ -74,12 +91,13 @@ async def get_test_data():
         try:
             test_data = load_and_merge_data(get_test_urls())
         except HTTPException as e:
-            raise HTTPException(status_code=500, detail="Failed to load test data: " + str(e.detail))
+            logger.error("Failed to load test data: " + str(e.detail))
+            raise HTTPException(status_code=500, detail="Failed to load test data")
     return test_data.to_dict(orient="records")
 
 # Endpoint for sales prediction
 class SalesPredictionRequest(BaseModel):
-    date: str
+    date: str  # Consider adding a regex or date format validation
     store_id: int
     item_id: int
 
@@ -87,11 +105,12 @@ class SalesPredictionRequest(BaseModel):
 def load_model() -> object:
     global model
     if model is None:
-        model_path = "path/to/your_model.pkl"  # Change to your actual model path
+        model_path = os.getenv("MODEL_PATH", "path/to/your_model.pkl")  # Use environment variable
         if os.path.exists(model_path):
             with open(model_path, "rb") as f:
                 model = pickle.load(f)
         else:
+            logger.error("Model not found.")
             raise HTTPException(status_code=500, detail="Model not found.")
     return model
 
@@ -108,11 +127,9 @@ async def predict_sales(request: SalesPredictionRequest):
     }
 
     # Placeholder for model prediction logic
-    # Assuming you have a `predict` method for the loaded model
     try:
         prediction = model.predict([input_data])  # Modify based on your model's input format
+        return {"prediction": prediction[0] if len(prediction) > 0 else None}
     except Exception as e:
+        logger.error(f"Prediction failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
-
-    # Return prediction
-    return {"prediction": prediction[0] if len(prediction) > 0 else None}

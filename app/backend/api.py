@@ -1,5 +1,3 @@
-# backend/api.py
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import pandas as pd
@@ -37,14 +35,9 @@ test_urls = [
     for i in range(1, 11)
 ]
 
-# Load and merge the train and test datasets when the API starts
-try:
-    train_data = load_and_merge_data(train_urls)
-    test_data = load_and_merge_data(test_urls)
-except Exception as e:
-    print(f"Error loading datasets: {e}")
-    train_data = pd.DataFrame()  # Set to empty DataFrame if loading fails
-    test_data = pd.DataFrame()    # Set to empty DataFrame if loading fails
+# Data loading on demand (lazy loading)
+train_data = None
+test_data = None
 
 @app.get("/")
 async def root():
@@ -56,12 +49,32 @@ async def health_check():
 
 @app.get("/train")
 async def get_train_data():
-    if train_data.empty:
-        raise HTTPException(status_code=500, detail="Train data is not available.")
+    global train_data
+    if train_data is None:
+        try:
+            train_data = load_and_merge_data(train_urls)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Failed to load train data")
     return train_data.to_dict(orient="records")  # Return as a list of dictionaries
 
 @app.get("/test")
 async def get_test_data():
-    if test_data.empty:
-        raise HTTPException(status_code=500, detail="Test data is not available.")
-    return test_data.to_dict(orient="records")  # Return as a list of dictionaries
+    global test_data
+    if test_data is None:
+        try:
+            test_data = load_and_merge_data(test_urls)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Failed to load test data")
+    return test_data.to_dict(orient="records")
+
+# Endpoint for sales prediction (example)
+class SalesPredictionRequest(BaseModel):
+    date: str
+    store_id: int
+    item_id: int
+
+@app.post("/sales/stores/items/")
+async def predict_sales(request: SalesPredictionRequest):
+    # Placeholder: Replace with your model prediction logic
+    prediction = 19.72  # Dummy prediction
+    return {"prediction": prediction}

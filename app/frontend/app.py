@@ -3,7 +3,7 @@ import requests
 import os
 
 # Base URL of the FastAPI backend
-BASE_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")  # Use environment variable or localhost for local testing
+BASE_URL = os.getenv("FASTAPI_URL", "https://api.render.com/deploy/srv-crqe4k68ii6s73ct8ee0?key=oT-4ajR5wB8")  # Use environment variable or localhost for local testing
 
 # Streamlit app layout
 st.title("Sales Revenue Forecasting and Prediction")

@@ -1,11 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Dict
 
 app = FastAPI()
 
 @app.get("/")
-def read_root():
+def read_root() -> Dict[str, Dict[str, str]]:
     return {
         "project": "Sales Prediction API",
         "endpoints": {
@@ -18,7 +18,7 @@ def read_root():
     }
 
 @app.get("/health/")
-def health_check():
+def health_check() -> Dict[str, str]:
     return {"message": "Welcome to the Sales Prediction API!"}
 
 class SalesPredictionRequest(BaseModel):
@@ -27,9 +27,10 @@ class SalesPredictionRequest(BaseModel):
     item_id: int
 
 @app.get("/sales/national/")
-def forecast_sales(date: str):
+def forecast_sales(date: str) -> Dict[str, float]:
     # Replace with your forecasting logic
-    return {
+    # Example placeholder data; in a real application, this would call a model or service
+    forecast_data = {
         "2016-01-01": 10000.01,
         "2016-01-02": 10001.12,
         "2016-01-03": 10002.22,
@@ -38,8 +39,14 @@ def forecast_sales(date: str):
         "2016-01-06": 10005.12,
         "2016-01-07": 10006.55,
     }
+    return forecast_data
 
 @app.get("/sales/stores/items/")
-def predict_sales(date: str, store_id: int, item_id: int):
+def predict_sales(date: str, store_id: int, item_id: int) -> Dict[str, float]:
     # Replace with your prediction logic
-    return {"prediction": 19.72}
+    # Example placeholder prediction; in a real application, this would call a model or service
+    if store_id <= 0 or item_id <= 0:
+        raise HTTPException(status_code=400, detail="store_id and item_id must be positive integers")
+    
+    prediction = {"prediction": 19.72}  # Placeholder prediction
+    return prediction

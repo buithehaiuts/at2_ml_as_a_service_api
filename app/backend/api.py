@@ -55,7 +55,7 @@ async def get_train_data():
             train_data = load_and_merge_data(train_urls)
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to load train data")
-    return train_data.to_dict(orient="records")  # Return as a list of dictionaries
+    return train_data.to_dict(orient="records")
 
 @app.get("/test")
 async def get_test_data():
@@ -67,7 +67,7 @@ async def get_test_data():
             raise HTTPException(status_code=500, detail="Failed to load test data")
     return test_data.to_dict(orient="records")
 
-# Endpoint for sales prediction (example)
+# Endpoint for sales prediction
 class SalesPredictionRequest(BaseModel):
     date: str
     store_id: int
@@ -75,6 +75,6 @@ class SalesPredictionRequest(BaseModel):
 
 @app.post("/sales/stores/items/")
 async def predict_sales(request: SalesPredictionRequest):
-    # Placeholder: Replace with your model prediction logic
+    # Placeholder for model prediction logic
     prediction = 19.72  # Dummy prediction
     return {"prediction": prediction}

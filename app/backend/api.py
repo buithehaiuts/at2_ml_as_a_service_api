@@ -23,6 +23,8 @@ def load_and_merge_data(urls: list) -> pd.DataFrame:
             dataframes.append(df)
         except HTTPException as e:
             print(f"Error loading data from {url}: {e.detail}")
+    if not dataframes:
+        raise HTTPException(status_code=500, detail="No data loaded from any URL")
     return pd.concat(dataframes, ignore_index=True)
 
 # URLs of the pickle files in your GitHub repository
@@ -53,8 +55,8 @@ async def get_train_data():
     if train_data is None:
         try:
             train_data = load_and_merge_data(train_urls)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail="Failed to load train data")
+        except HTTPException as e:
+            raise HTTPException(status_code=500, detail="Failed to load train data: " + str(e.detail))
     return train_data.to_dict(orient="records")
 
 @app.get("/test")
@@ -63,8 +65,8 @@ async def get_test_data():
     if test_data is None:
         try:
             test_data = load_and_merge_data(test_urls)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail="Failed to load test data")
+        except HTTPException as e:
+            raise HTTPException(status_code=500, detail="Failed to load test data: " + str(e.detail))
     return test_data.to_dict(orient="records")
 
 # Endpoint for sales prediction
@@ -77,4 +79,5 @@ class SalesPredictionRequest(BaseModel):
 async def predict_sales(request: SalesPredictionRequest):
     # Placeholder for model prediction logic
     prediction = 19.72  # Dummy prediction
+    # Here you would call your trained model to get the actual prediction based on request data
     return {"prediction": prediction}

@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Set the API URL for the FastAPI backend
-API_URL = "https://at2-ml-as-a-service-api.onrender.com"
+API_URL = "https://at2-ml-as-a-service-api.onrender.com"  # Your FastAPI backend URL
 
 # Streamlit app layout
 st.title("Sales Revenue Forecasting and Prediction")
@@ -15,7 +15,7 @@ if selected_tab == "API Health Check":
     st.header("API Health Check")
     
     if st.button("Check API Health"):
-        url = f"{API_URL}/health"  # FastAPI health endpoint
+        url = f"{API_URL}/health"  # Check health endpoint in the FastAPI backend
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
@@ -46,8 +46,6 @@ if selected_tab == "National Sales Forecast":
                 st.error("Received an empty response from the API.")
         except requests.exceptions.RequestException as e:
             st.error(f"Error: {e}")
-            st.write("Response Status Code:", response.status_code if 'response' in locals() else "N/A")
-            st.write("Response Text:", response.text if 'response' in locals() else "N/A")
 
 # Tab 3: Store & Item Sales Prediction
 if selected_tab == "Store & Item Prediction":
@@ -82,8 +80,6 @@ if selected_tab == "Store & Item Prediction":
                     
             except requests.exceptions.RequestException as e:
                 st.error(f"Error: {e}")
-                st.write("Response Status Code:", response.status_code if 'response' in locals() else "N/A")
-                st.write("Response Text:", response.text if 'response' in locals() else "N/A")
 
 # Tab 4: Instructions
 if selected_tab == "Instructions":
@@ -106,3 +102,4 @@ if selected_tab == "Instructions":
     - Input the correct store ID, item ID, and date formats.
     - For testing purposes, the app is configured to connect to `https://at2-ml-as-a-service-api.onrender.com`.
     """)
+

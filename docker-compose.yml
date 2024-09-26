@@ -22,5 +22,5 @@ services:
       - ./app:/app
     environment:
       - PYTHONUNBUFFERED=1
-      - FASTAPI_URL=http://fastapi:8000  # Point to the FastAPI service
+      - FASTAPI_URL=http://fastapi:8000  # Correctly points to the FastAPI service
     command: ["streamlit", "run", "/app/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

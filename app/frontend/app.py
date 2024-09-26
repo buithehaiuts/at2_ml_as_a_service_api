@@ -1,6 +1,9 @@
 import streamlit as st
 import requests
 
+# Set the API URL for the FastAPI backend
+API_URL = "https://at2-ml-as-a-service-api.onrender.com"
+
 # Streamlit app layout
 st.title("Sales Revenue Forecasting and Prediction")
 
@@ -12,7 +15,7 @@ if selected_tab == "API Health Check":
     st.header("API Health Check")
     
     if st.button("Check API Health"):
-        url = "http://127.0.0.1:8000/health"  # FastAPI health endpoint
+        url = f"{API_URL}/health"  # FastAPI health endpoint
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
@@ -29,7 +32,7 @@ if selected_tab == "National Sales Forecast":
     
     # Button to trigger forecast
     if st.button("Get National Forecast"):
-        url = f"http://127.0.0.1:8000/sales/national?date={date_forecast}"
+        url = f"{API_URL}/sales/national?date={date_forecast}"  # Update with the correct endpoint
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
@@ -59,7 +62,7 @@ if selected_tab == "Store & Item Prediction":
     if st.button("Get Item Prediction"):
         # Call FastAPI for store-item sales prediction
         with st.spinner("Calling FastAPI..."):
-            url = "http://127.0.0.1:8000/sales/stores/items"
+            url = f"{API_URL}/sales/stores/items"  # Update with the correct endpoint
             try:
                 response = requests.get(url, params=input_data)
                 response.raise_for_status()  # Raise an error for bad responses
@@ -72,7 +75,7 @@ if selected_tab == "Store & Item Prediction":
 if selected_tab == "Instructions":
     st.header("Instructions and Notes")
     
-    st.markdown("""
+    st.markdown(""" 
     ### How to use the app:
     1. **API Health Check**: Verify if the FastAPI backend is running and accessible.
     2. **National Sales Forecast**: Get a 7-day sales forecast for all stores based on the selected date.
@@ -87,6 +90,5 @@ if selected_tab == "Instructions":
     ### Important Notes:
     - Ensure that the API is running before making requests.
     - Input the correct store ID, item ID, and date formats.
-    - For testing purposes, the app is configured to connect to `http://127.0.0.1:8000`.
+    - For testing purposes, the app is configured to connect to `https://at2-ml-as-a-service-api.onrender.com`.
     """)
-

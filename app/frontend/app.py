@@ -32,15 +32,22 @@ if selected_tab == "National Sales Forecast":
     
     # Button to trigger forecast
     if st.button("Get National Forecast"):
-        url = f"{API_URL}/sales/national?date={date_forecast}"  # Update with the correct endpoint
+        url = f"{API_URL}/sales/national?date={date_forecast}"  # Ensure the endpoint is correct
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
-            forecast = response.json()
-            st.success("7-day Sales Forecast:")
-            st.json(forecast)
+            
+            # Check for empty response
+            if response.text:
+                forecast = response.json()
+                st.success("7-day Sales Forecast:")
+                st.json(forecast)
+            else:
+                st.error("Received an empty response from the API.")
         except requests.exceptions.RequestException as e:
             st.error(f"Error: {e}")
+            st.write("Response Status Code:", response.status_code if 'response' in locals() else "N/A")
+            st.write("Response Text:", response.text if 'response' in locals() else "N/A")
 
 # Tab 3: Store & Item Sales Prediction
 if selected_tab == "Store & Item Prediction":
@@ -60,16 +67,23 @@ if selected_tab == "Store & Item Prediction":
     
     # Button to trigger prediction
     if st.button("Get Item Prediction"):
-        # Call FastAPI for store-item sales prediction
         with st.spinner("Calling FastAPI..."):
-            url = f"{API_URL}/sales/stores/items/"  # Use the correct endpoint for POST request
+            url = f"{API_URL}/sales/stores/items/"  # Ensure this endpoint is correct
             try:
                 response = requests.post(url, json=input_data)  # Use POST instead of GET
                 response.raise_for_status()  # Raise an error for bad responses
-                prediction = response.json().get('prediction', 'No prediction found.')
-                st.success(f"Prediction: {prediction}")
+                
+                # Check for empty response
+                if response.text:
+                    prediction = response.json().get('prediction', 'No prediction found.')
+                    st.success(f"Prediction: {prediction}")
+                else:
+                    st.error("Received an empty response from the API.")
+                    
             except requests.exceptions.RequestException as e:
                 st.error(f"Error: {e}")
+                st.write("Response Status Code:", response.status_code if 'response' in locals() else "N/A")
+                st.write("Response Text:", response.text if 'response' in locals() else "N/A")
 
 # Tab 4: Instructions
 if selected_tab == "Instructions":

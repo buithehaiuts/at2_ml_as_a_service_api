@@ -1,11 +1,11 @@
-from typing import Optional, List
+from typing import Optional, Dict
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import pandas as pd
 import requests
-import os
 import logging
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime, timedelta
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -23,28 +23,75 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Sample data for demonstration
+dummy_sales_forecast = {
+    "2016-01-01": 10000.01,
+    "2016-01-02": 10001.12,
+    "2016-01-03": 10002.22,
+    "2016-01-04": 10003.30,
+    "2016-01-05": 10004.46,
+    "2016-01-06": 10005.12,
+    "2016-01-07": 10006.55,
+}
+
+# Brief project description
 @app.get("/", status_code=200)
 async def root():
     return {
-        "message": "Welcome to the Sales Revenue Forecasting and Prediction API"
+        "description": "This API predicts sales revenue based on historical data.",
+        "endpoints": {
+            "/": "Brief description of the project.",
+            "/health/": "Check the health of the API.",
+            "/sales/national/": "Get forecasted sales for the next 7 days.",
+            "/sales/stores/items/": "Get predicted sales for a specific store and item."
+        },
+        "expected_input": {
+            "sales/national/": {"date": "YYYY-MM-DD"},
+            "sales/stores/items/": {"date": "YYYY-MM-DD", "store_id": "int", "item_id": "int"}
+        },
+        "expected_output": {
+            "sales/national/": {
+                "2016-01-01": 10000.01,
+                "2016-01-02": 10001.12,
+                "2016-01-03": 10002.22,
+                "2016-01-04": 10003.30,
+                "2016-01-05": 10004.46,
+                "2016-01-06": 10005.12,
+                "2016-01-07": 10006.55,
+            },
+            "sales/stores/items/": {"prediction": 19.72}
+        },
+        "github_repo": "https://github.com/your_github_repo_here"
     }
 
-@app.get("/health", status_code=200)
+@app.get("/health/", status_code=200)
 async def health_check():
     return {"status": "healthy"}
 
-# Endpoint for sales prediction (currently no model logic)
+@app.get("/sales/national/", status_code=200)
+async def forecast_sales(date: str):
+    # Validate the date format
+    try:
+        start_date = datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    # Generate next 7 days of forecasted sales
+    forecast = {}
+    for i in range(1, 8):
+        forecast[(start_date + timedelta(days=i)).strftime("%Y-%m-%d")] = dummy_sales_forecast[
+            "2016-01-01"] + (i * 1.11)  # Example logic for demonstration
+
+    return forecast
+
 class SalesPredictionRequest(BaseModel):
-    date: str  # Format validation can be added
+    date: str  # Expected date format YYYY-MM-DD
     store_id: int
     item_id: int
 
-@app.post("/sales/stores/items/")
+@app.get("/sales/stores/items/")
 async def predict_sales(request: SalesPredictionRequest):
-    # Placeholder for model prediction logic
-    try:
-        # As there's no model logic currently, return dummy prediction
-        return {"prediction": "Dummy prediction based on input data."}
-    except Exception as e:
-        logger.error(f"Prediction failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    # Example prediction logic (dummy prediction)
+    # You can replace this with actual model prediction logic later
+    return {"prediction": 19.72}  # Placeholder value for demonstration
+

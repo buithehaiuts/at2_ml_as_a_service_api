@@ -19,7 +19,7 @@ if selected_tab == "API Health Check":
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
-            st.success(f"API is healthy: {response.text}")
+            st.success(f"API is healthy: {response.json()}")
         except requests.exceptions.RequestException as e:
             st.error(f"Error: {e}")
 
@@ -62,9 +62,9 @@ if selected_tab == "Store & Item Prediction":
     if st.button("Get Item Prediction"):
         # Call FastAPI for store-item sales prediction
         with st.spinner("Calling FastAPI..."):
-            url = f"{API_URL}/sales/stores/items"  # Update with the correct endpoint
+            url = f"{API_URL}/sales/stores/items/"  # Use the correct endpoint for POST request
             try:
-                response = requests.get(url, params=input_data)
+                response = requests.post(url, json=input_data)  # Use POST instead of GET
                 response.raise_for_status()  # Raise an error for bad responses
                 prediction = response.json().get('prediction', 'No prediction found.')
                 st.success(f"Prediction: {prediction}")

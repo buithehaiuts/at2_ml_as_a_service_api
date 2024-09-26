@@ -1,36 +1,42 @@
 # backend/api.py
 
-from fastapi import APIRouter, HTTPException
+from fastapi import FastAPI
+from pydantic import BaseModel
+import pandas as pd
 import requests
+import pickle
+import os
 
-router = APIRouter()
+app = FastAPI()
 
-# Base URL for the GitHub repository (replace 'your_username' and 'your_repo' with actual values)
-GITHUB_DATA_URL = "https://raw.githubusercontent.com/buithehaiuts/at2_ml_as_a_service_experiments/main/data/processed/"
-
-@router.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-@router.get("/data/{file_name}")
-async def fetch_data(file_name: str):
-    # Construct the full URL for the dataset
-    url = f"{GITHUB_DATA_URL}{file_name}"
-
-    # Fetch the data from GitHub
-    response = requests.get(url)
-
-    # Check if the response is successful
+# Function to download a file from GitHub and load it
+def load_data_from_github(file_url):
+    response = requests.get(file_url)
     if response.status_code == 200:
-        # Assuming the data is in pickle format
-        try:
-            # For pickle files, we might need to read it into a BytesIO buffer
-            import pandas as pd
-            from io import BytesIO
-
-            data = pd.read_pickle(BytesIO(response.content))
-            return data.to_dict()  # Convert DataFrame to dictionary format
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        return pickle.loads(response.content)
     else:
-        raise HTTPException(status_code=404, detail="Data file not found")
+        raise Exception("Failed to download file")
+
+# Function to load and merge multiple pickle files
+def load_and_merge_data(urls):
+    dataframes = []
+    for url in urls:
+        df = load_data_from_github(url)
+        dataframes.append(df)
+    return pd.concat(dataframes, ignore_index=True)
+
+# URLs of the pickle files in your GitHub repository
+train_urls = [f"https://raw.githubusercontent.com/buithehaiuts/at2_ml_as_a_service_experiments/main/data/processed/train_final_merged_part{i}.pkl" for i in range(1, 21)]
+test_urls = [f"https://raw.githubusercontent.com/buithehaiuts/at2_ml_as_a_service_experiments/main/data/processed/test_final_merged_part{i}.pkl" for i in range(1, 11)]
+
+# Load and merge the train and test datasets when the API starts
+train_data = load_and_merge_data(train_urls)
+test_data = load_and_merge_data(test_urls)
+
+@app.get("/train")
+async def get_train_data():
+    return train_data.to_dict(orient="records")  # Return as a list of dictionaries
+
+@app.get("/test")
+async def get_test_data():
+    return test_data.to_dict(orient="records")  # Return as a list of dictionaries

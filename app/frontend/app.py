@@ -1,9 +1,6 @@
 import streamlit as st
 import requests
 
-# Set the API URL for the FastAPI backend
-API_URL = "https://<your-backend-url>.onrender.com"  # Replace with your FastAPI backend URL
-
 # Streamlit app layout
 st.title("Sales Revenue Forecasting and Prediction")
 
@@ -14,8 +11,9 @@ selected_tab = st.sidebar.radio("Navigation", ["API Health Check", "National Sal
 if selected_tab == "API Health Check":
     st.header("API Health Check")
     
+    # Health check button
     if st.button("Check API Health"):
-        url = f"{API_URL}/health"  # Health check endpoint
+        url = "/health"  # Health check endpoint
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
@@ -32,7 +30,7 @@ if selected_tab == "National Sales Forecast":
     
     # Button to trigger forecast
     if st.button("Get National Forecast"):
-        url = f"{API_URL}/sales/national?date={date_forecast}"  # Ensure the endpoint is correct
+        url = f"/sales/national?date={date_forecast}"  # Ensure the endpoint is correct
         try:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
@@ -65,7 +63,7 @@ if selected_tab == "Store & Item Prediction":
     # Button to trigger prediction
     if st.button("Get Item Prediction"):
         with st.spinner("Calling FastAPI..."):
-            url = f"{API_URL}/sales/stores/items/"  # Ensure this endpoint is correct
+            url = "/sales/stores/items/"  # Ensure this endpoint is correct
             try:
                 response = requests.post(url, json=input_data)  # Use POST for predictions
                 response.raise_for_status()  # Raise an error for bad responses
@@ -97,5 +95,5 @@ if selected_tab == "Instructions":
     ### Important Notes:
     - Ensure that the API is running before making requests.
     - Input the correct store ID, item ID, and date formats.
-    - For testing purposes, the app is configured to connect to your FastAPI backend.
     """)
+

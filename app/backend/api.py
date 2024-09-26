@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import pandas as pd
 import requests
 import pickle
+from typing import Optional, List
 
 app = FastAPI()
 
@@ -15,7 +16,7 @@ def load_data_from_github(file_url: str) -> pd.DataFrame:
         raise HTTPException(status_code=response.status_code, detail="Failed to download file")
 
 # Function to load and merge multiple pickle files
-def load_and_merge_data(urls: list) -> pd.DataFrame:
+def load_and_merge_data(urls: List[str]) -> pd.DataFrame:
     dataframes = []
     for url in urls:
         try:
@@ -28,14 +29,17 @@ def load_and_merge_data(urls: list) -> pd.DataFrame:
     return pd.concat(dataframes, ignore_index=True)
 
 # URLs of the pickle files in your GitHub repository
-train_urls = [
-    f"https://raw.githubusercontent.com/buithehaiuts/at2_ml_as_a_service_experiments/main/data/processed/train_final_merged_part{i}.pkl" 
-    for i in range(1, 21)
-]
-test_urls = [
-    f"https://raw.githubusercontent.com/buithehaiuts/at2_ml_as_a_service_experiments/main/data/processed/test_final_merged_part{i}.pkl" 
-    for i in range(1, 11)
-]
+def get_train_urls() -> List[str]:
+    return [
+        f"https://raw.githubusercontent.com/buithehaiuts/at2_ml_as_a_service_experiments/main/data/processed/train_final_merged_part{i}.pkl" 
+        for i in range(1, 21)
+    ]
+
+def get_test_urls() -> List[str]:
+    return [
+        f"https://raw.githubusercontent.com/buithehaiuts/at2_ml_as_a_service_experiments/main/data/processed/test_final_merged_part{i}.pkl" 
+        for i in range(1, 11)
+    ]
 
 # Data loading on demand (lazy loading)
 train_data: Optional[pd.DataFrame] = None
@@ -54,7 +58,7 @@ async def get_train_data():
     global train_data
     if train_data is None:
         try:
-            train_data = load_and_merge_data(train_urls)
+            train_data = load_and_merge_data(get_train_urls())
         except HTTPException as e:
             raise HTTPException(status_code=500, detail="Failed to load train data: " + str(e.detail))
     return train_data.to_dict(orient="records")
@@ -64,7 +68,7 @@ async def get_test_data():
     global test_data
     if test_data is None:
         try:
-            test_data = load_and_merge_data(test_urls)
+            test_data = load_and_merge_data(get_test_urls())
         except HTTPException as e:
             raise HTTPException(status_code=500, detail="Failed to load test data: " + str(e.detail))
     return test_data.to_dict(orient="records")

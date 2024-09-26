@@ -3,7 +3,9 @@ import requests
 import os
 
 # Base URL of the FastAPI backend
-BASE_URL = os.getenv("FASTAPI_URL", "https://api.render.com/deploy/srv-crqe4k68ii6s73ct8ee0?key=oT-4ajR5wB8")  # Use environment variable or localhost for local testing
+# This will retrieve the FASTAPI_URL environment variable set on Render,
+# or fallback to a local URL for local testing.
+BASE_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")  # Change to your local FastAPI URL for local testing
 
 # Streamlit app layout
 st.title("Sales Revenue Forecasting and Prediction")
@@ -23,7 +25,7 @@ if selected_tab == "API Health Check":
             response.raise_for_status()  # Raise an error for bad responses
             st.success(f"API is healthy: {response.json()}")
         except requests.exceptions.RequestException as e:
-            st.error(f"Error during API health check: {e}")
+            st.error(f"Error: {e}")
 
 # Tab 2: National Sales Forecast
 if selected_tab == "National Sales Forecast":
@@ -39,14 +41,14 @@ if selected_tab == "National Sales Forecast":
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
             
-            forecast = response.json()
-            if forecast:
+            if response.text:
+                forecast = response.json()
                 st.success("7-day Sales Forecast:")
                 st.json(forecast)
             else:
                 st.error("Received an empty response from the API.")
         except requests.exceptions.RequestException as e:
-            st.error(f"Error retrieving national forecast: {e}")
+            st.error(f"Error: {e}")
 
 # Tab 3: Store & Item Sales Prediction
 if selected_tab == "Store & Item Prediction":
@@ -66,16 +68,19 @@ if selected_tab == "Store & Item Prediction":
     
     # Button to trigger prediction
     if st.button("Get Item Prediction"):
-        with st.spinner("Calling FastAPI for prediction..."):
+        with st.spinner("Calling FastAPI..."):
             url = f"{BASE_URL}/sales/stores/items/"  # Use the full endpoint for predictions
             try:
                 response = requests.post(url, json=input_data)  # Use POST for predictions
                 response.raise_for_status()  # Raise an error for bad responses
                 
-                prediction = response.json().get('prediction', 'No prediction found.')
-                st.success(f"Prediction: {prediction}")
+                if response.text:
+                    prediction = response.json().get('prediction', 'No prediction found.')
+                    st.success(f"Prediction: {prediction}")
+                else:
+                    st.error("Received an empty response from the API.")
             except requests.exceptions.RequestException as e:
-                st.error(f"Error during sales prediction: {e}")
+                st.error(f"Error: {e}")
 
 # Tab 4: Instructions
 if selected_tab == "Instructions":

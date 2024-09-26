@@ -24,7 +24,6 @@ def load_and_merge_data(urls: list) -> pd.DataFrame:
             df = load_data_from_github(url)
             dataframes.append(df)
         except HTTPException as e:
-            # Handle specific URL load failure
             print(f"Error loading data from {url}: {e.detail}")
     return pd.concat(dataframes, ignore_index=True)
 
@@ -46,6 +45,14 @@ except Exception as e:
     print(f"Error loading datasets: {e}")
     train_data = pd.DataFrame()  # Set to empty DataFrame if loading fails
     test_data = pd.DataFrame()    # Set to empty DataFrame if loading fails
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Sales Revenue Forecasting and Prediction API"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
 
 @app.get("/train")
 async def get_train_data():

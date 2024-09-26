@@ -38,8 +38,8 @@ test_urls = [
 ]
 
 # Data loading on demand (lazy loading)
-train_data = None
-test_data = None
+train_data: Optional[pd.DataFrame] = None
+test_data: Optional[pd.DataFrame] = None
 
 @app.get("/")
 async def root():

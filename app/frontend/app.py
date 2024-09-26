@@ -18,7 +18,7 @@ with st.form(key='prediction_form'):
     if submit_button:
         # Make a request to the FastAPI backend
         try:
-            response = requests.post(f"{FASTAPI_URL}/sales/stores/items/", json={
+            response = requests.get(f"{FASTAPI_URL}/sales/stores/items/", params={
                 "date": date,
                 "store_id": store_id,
                 "item_id": item_id

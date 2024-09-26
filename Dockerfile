@@ -13,8 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire 'app' folder from the host to the '/app' folder in the container
 COPY ./app /app
 
-# Expose the port that Streamlit will run on
-EXPOSE 8501
+# Expose the ports that FastAPI and Streamlit will run on
+EXPOSE 8000 8501
 
-# Set the default command to run the Streamlit app
-CMD ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Set the command to run both the backend and frontend
+# Use bash to run both commands in the background
+CMD ["bash", "-c", "uvicorn app.backend.api:app --host 0.0.0.0 --port 8000 & streamlit run app/frontend/app.py --server.port=8501 --server.address=0.0.0.0"]

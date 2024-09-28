@@ -25,24 +25,26 @@ store_item_data = fetch_store_item_data()
 if store_item_data is not None:
     st.write("Store and Item Data:")
     st.json(store_item_data)  # Display the fetched data in a JSON format
-    
+
+    # Extract unique Store IDs and Item IDs from the training data
+    store_ids = sorted(set([row['store_id'] for row in store_item_data['head']]))  # Adjust based on your JSON structure
+    item_ids = sorted(set([row['item_id'] for row in store_item_data['head']]))  # Adjust based on your JSON structure
+
     with st.form(key='data_check_form'):
         # User input for date with a text box
         date = st.date_input("Select Date", value=datetime.now())
 
         # Dropdown for Store ID
-        store_ids = [1, 2, 3]  # Replace with actual store IDs fetched from your data
         store_id = st.selectbox("Select Store ID", options=store_ids)
 
         # Dropdown for Item ID
-        item_ids = [101, 102, 103]  # Replace with actual item IDs fetched from your data
         item_id = st.selectbox("Select Item ID", options=item_ids)
 
         check_button = st.form_submit_button("Check Data")
 
         if check_button:
-            # Display selected store and item information (mockup)
+            # Display selected store and item information
             st.write(f"Checking data for Store ID: {store_id}, Item ID: {item_id} on date: {date}")
-            # You can add additional logic here to retrieve and display specific data for the given store and item
+            # Add logic here to retrieve and display specific data for the given store and item
 else:
     st.error("Failed to load store and item data.")

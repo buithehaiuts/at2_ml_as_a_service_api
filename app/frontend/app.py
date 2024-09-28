@@ -4,7 +4,7 @@ import requests
 from datetime import datetime
 
 # API URL for the FastAPI backend
-FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")  # Adjust as needed
+FASTAPI_URL = os.getenv("FASTAPI_URL", "http://fastapi-backend:8000")  # Use the service name for internal communication
 
 st.title("Sales Prediction App")
 

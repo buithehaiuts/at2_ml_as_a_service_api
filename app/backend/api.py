@@ -34,16 +34,15 @@ class DataLoader:
             train_url_df = pd.DataFrame(train_urls.items(), columns=['part', 'url'])
             test_url_df = pd.DataFrame(test_urls.items(), columns=['part', 'url'])
 
-            train_url_df['url'] = train_url_df['url'].str.replace('dl=0', 'dl=1')
-            test_url_df['url'] = test_url_df['url'].str.replace('dl=0', 'dl=1')
+            train_url_df['url'] = train_url_df['url'].str.replace('dl=0', 'dl=1', regex=False)
+            test_url_df['url'] = test_url_df['url'].str.replace('dl=0', 'dl=1', regex=False)
 
             # Load pickle files into DataFrames
             def load_pickle_from_dropbox(dropbox_link):
                 try:
                     response = requests.get(dropbox_link, stream=True)
                     response.raise_for_status()
-                    data = pickle.load(response.raw)
-                    return data
+                    return pickle.load(response.raw)
                 except Exception as e:
                     logger.error(f"Error loading pickle from {dropbox_link}: {e}")
                     return None
@@ -75,7 +74,7 @@ class DataLoader:
     def display_dataframe(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Display basic information about the DataFrame."""
         if df.empty:
-            return {"error": "Dataframe is empty or not loaded"}
+            return {"error": "DataFrame is empty or not loaded"}
         return {
             "columns": df.columns.tolist(),
             "shape": df.shape,
@@ -94,7 +93,7 @@ class SalesAPI:
 
     def setup_routes(self):
         @self.app.get("/")
-        def read_root() -> Dict[str, Dict[str, str]]:
+        def read_root() -> Dict[str, Any]:
             return {
                 "project": "Sales Prediction API",
                 "endpoints": {

@@ -1,0 +1,38 @@
+{
+    "train": {
+        "part_1": "https://www.dropbox.com/scl/fi/wujnreqsthois8vvmv40b/train_final_merged_part1.pkl?rlkey=2ikztpsfg1vr7whg20yujhc1l&st=ect9ydxa&dl=0",
+        "part_2": "https://www.dropbox.com/scl/fi/n6r4z8tzakb4byh4qkn8a/train_final_merged_part2.pkl?rlkey=e3vq8sqo1k5g5fzwnxtj4crmg&st=zdd42w7r&dl=0",
+        "part_3": "https://www.dropbox.com/scl/fi/wbqvkf31h02af5nltsphc/train_final_merged_part3.pkl?rlkey=p6cjcuu5spirkow7rbsp3wb0v&st=bqp2ovbk&dl=0",
+        "part_4": "https://www.dropbox.com/scl/fi/6pwd0f4akh1jdnp9ublcr/train_final_merged_part4.pkl?rlkey=kv7dgzt3gj6jee1rzi4w0pa4h&st=u9rvogzo&dl=0",
+        "part_5": "https://www.dropbox.com/scl/fi/pw4w2nyxmknkabssy7592/train_final_merged_part5.pkl?rlkey=t2qa8mtjel476lni3jj5fn3zp&st=l9k0l6yu&dl=0",
+        "part_6": "https://www.dropbox.com/scl/fi/xxh5uiu0oeed4zudxz4t5/train_final_merged_part6.pkl?rlkey=o4396ekyhe473f22khjh4igl2&st=d1u69y7i&dl=0",
+        "part_7": "https://www.dropbox.com/scl/fi/w6lsuk1cfeuxrnqmbvfdp/train_final_merged_part7.pkl?rlkey=dv41dzbuyxr6friomt7xngw60&st=9bk8q8qo&dl=0",
+        "part_8": "https://www.dropbox.com/scl/fi/nm6sr1biwlcpsfxrrmhyw/train_final_merged_part8.pkl?rlkey=m8wnuf82a2eyg1mmki24kx945&st=nbu621hg&dl=0",
+        "part_9": "https://www.dropbox.com/scl/fi/qieukbu3eo2jngq3cik10/train_final_merged_part9.pkl?rlkey=fq6q9fup4ihpihhywolpl8rqb&st=havchuh2&dl=0",
+        "part_10": "https://www.dropbox.com/scl/fi/qdxyjmikbwq4is7xj66yh/train_final_merged_part10.pkl?rlkey=lbvpj5p8l48i9iifajafosr8c&st=2tj8lrjn&dl=0",
+        "part_11": "https://www.dropbox.com/scl/fi/r7fyu7dh0llaqm0j6xrbd/train_final_merged_part11.pkl?rlkey=fppkkimwycttt19d7jhpzm8uu&st=u6iy8s46&dl=0",
+        "part_12": "https://www.dropbox.com/scl/fi/gh9qnz1oof6rabf3gnyio/train_final_merged_part12.pkl?rlkey=13xj0tcu1jlrrro2qbolk1c6i&st=86m6p96r&dl=0"
+    },
+    "test": {
+        "part_1": "https://www.dropbox.com/scl/fi/05v3ri17ol3myfntm3mto/test_final_merged_part1.pkl?rlkey=kgwsjlx9baf1u6cp51v5ins7l&st=4ws36xsk&dl=0",
+        "part_2": "https://www.dropbox.com/scl/fi/9axcxu4emd6949vn6th39/test_final_merged_part2.pkl?rlkey=ecnbvsnne6q98gp503ygm9w7p&st=h5lsky7q&dl=0",
+        "part_3": "https://www.dropbox.com/scl/fi/a9b6c1082yi7jqlb46s61/test_final_merged_part3.pkl?rlkey=nwltko6ywup1kcksqhl2f00nx&st=9gv8euje&dl=0",
+        "part_4": "https://www.dropbox.com/scl/fi/tucbtv56uo093h5yw06hk/test_final_merged_part4.pkl?rlkey=hytcjejbyh557fp5kmc7ulhar&st=en2roekc&dl=0",
+        "part_5": "https://www.dropbox.com/scl/fi/98fzlewcnu64jl7ngva72/test_final_merged_part5.pkl?rlkey=br1ngt28m5qmx1by47o92mplg&st=u6ooj0lr&dl=0",
+        "part_6": "https://www.dropbox.com/scl/fi/b50lie8ow2gzgsun5i7eh/test_final_merged_part6.pkl?rlkey=1xxl9thr6vrtz9ia8fj8vxrkr&st=m9hheqw5&dl=0",
+        "part_7": "https://www.dropbox.com/scl/fi/x1uqr59r3vtvblni80bu1/test_final_merged_part7.pkl?rlkey=748p15n84ul6tpkdea7ygftox&st=yyy2w5to&dl=0",
+        "part_8": "https://www.dropbox.com/scl/fi/0vugtnzr67ypnzz1m4jyy/test_final_merged_part8.pkl?rlkey=nfk9arsfm0wgeypuo01b4xrda&st=89svebiq&dl=0",
+        "part_9": "https://www.dropbox.com/scl/fi/pu5gp12v9ug9lalziake7/test_final_merged_part9.pkl?rlkey=v66qfjueinbm84gz4xgljhwen&st=l0v3lmap&dl=0",
+        "part_10": "https://www.dropbox.com/scl/fi/nag2cs3yjxjlo68e95obo/test_final_merged_part10.pkl?rlkey=jv6hagq64vj4l61s60ixq64um&st=9mxsgrsx&dl=0",
+        "part_11": "https://www.dropbox.com/scl/fi/2m9kkqa7p3dnx8aeblsv1/test_final_merged_part11.pkl?rlkey=wmd6x84pj2qekpyofjf68ep46&st=9609uern&dl=0",
+        "part_12": "https://www.dropbox.com/scl/fi/bjytw5xu5sy90j4o2icxg/test_final_merged_part12.pkl?rlkey=thz8udmrskmbxxc1d3iwithxe&st=tya12loz&dl=0",
+        "part_13": "https://www.dropbox.com/scl/fi/58auvyqf9my3fns81zl5z/test_final_merged_part13.pkl?rlkey=hbrsib7hkcrl0nbybn0bk8fk2&st=p11i5hfg&dl=0",
+        "part_14": "https://www.dropbox.com/scl/fi/qnhikuxcmn3u2piy3c3n2/test_final_merged_part14.pkl?rlkey=e5w93i9qqic4jjn3ulkb3dn3x&st=719yp9gj&dl=0",
+        "part_15": "https://www.dropbox.com/scl/fi/q3nc1cj3x361a88gxmncg/test_final_merged_part15.pkl?rlkey=6swp4jgjz97ukph4ma0br5xx0&st=cdmrvna9&dl=0",
+        "part_16": "https://www.dropbox.com/scl/fi/87juatg88n8htlt4sxduc/test_final_merged_part16.pkl?rlkey=4gvh2zt3ou9rktylyqohqnpjg&st=gpzv7ri8&dl=0",
+        "part_17": "https://www.dropbox.com/scl/fi/kns2l7cb806wmw27ni4cw/test_final_merged_part17.pkl?rlkey=tzi8p6n7tkqh9lb5q4q1dz1rj&st=44bx48np&dl=0",
+        "part_18": "https://www.dropbox.com/scl/fi/o83aa21q7nq5u7v2868t3/test_final_merged_part18.pkl?rlkey=ghno0l4vh68frbuvpmzh7b5xa&st=mrp1a7ah&dl=0",
+        "part_19": "https://www.dropbox.com/scl/fi/i5pk9e7hpwaz1r438jrjp/test_final_merged_part19.pkl?rlkey=eo0fh2j48d1j5kap3l69t1osp&st=sz3o98o7&dl=0",
+        "part_20": "https://www.dropbox.com/scl/fi/ubz1163nq8o329zvki85g/test_final_merged_part20.pkl?rlkey=dqhfqgwavexclnjmcx7oq3s74&st=jbof0h6a&dl=0"
+    }
+}

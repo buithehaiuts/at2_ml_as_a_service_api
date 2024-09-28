@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any
+from typing import Dict, Any, List
 import pandas as pd
 import json
 import requests
@@ -13,6 +13,8 @@ class DataLoader:
     def __init__(self, json_file_path: str):
         self.json_file_path = json_file_path
         self.train_df, self.test_df = self.load_dataframes()
+        self.store_ids = self.train_df['store_id'].unique().tolist()
+        self.item_ids = self.train_df['item_id'].unique().tolist()
 
     def load_dataframes(self):
         """Load training and testing DataFrames from JSON and Dropbox links."""
@@ -74,7 +76,6 @@ class DataLoader:
             "tail": df.tail().to_dict(orient='records')
         }
 
-
 class SalesAPI:
     """Class that defines API endpoints for sales prediction."""
 
@@ -94,7 +95,8 @@ class SalesAPI:
                     "/sales/national/": "Forecast sales for the next 7 days",
                     "/sales/stores/items/": "Query sales for specific store and item",
                     "/data/display/train/": "Display training DataFrame",
-                    "/data/display/test/": "Display testing DataFrame"
+                    "/data/display/test/": "Display testing DataFrame",
+                    "/data/ids/": "Get available store and item IDs"
                 },
                 "github": "https://github.com/buithehaiuts/at2_ml_as_a_service_api"
             }
@@ -127,6 +129,14 @@ class SalesAPI:
         def display_test_data() -> Dict[str, Any]:
             """Display the testing DataFrame information."""
             return self.data_loader.display_dataframe(self.data_loader.test_df)
+
+        @self.app.get("/data/ids/")
+        def get_ids() -> Dict[str, List[int]]:
+            """Return available store and item IDs."""
+            return {
+                "store_ids": self.data_loader.store_ids,
+                "item_ids": self.data_loader.item_ids
+            }
 
     @staticmethod
     def validate_date(date: str):

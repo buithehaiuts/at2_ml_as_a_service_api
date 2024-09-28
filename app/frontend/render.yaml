@@ -4,16 +4,16 @@ services:
   - name: streamlit-frontend
     type: web
     env: python
-    plan: free  # You can also specify "starter", "standard", etc.
+    plan: free  # You can specify "starter", "standard", etc.
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "streamlit run app.py --server.port $PORT"  # Adjusted path to match the location of app.py
+    startCommand: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0"  # Ensuring it binds to 0.0.0.0
     envVars:
       - key: FASTAPI_URL
         value: http://fastapi-backend:$PORT  # Use the service name for internal communication
     healthCheckPath: "/"
     autoDeploy: true
     regions: 
-      - oregon   # You can change this to another region if needed
+      - oregon  # You can change this to another region if needed
 
   - name: fastapi-backend
     type: web

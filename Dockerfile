@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app
 
 # Expose the port that Streamlit will run on
-EXPOSE 8501
+EXPOSE 8501  
 
 # Set the command to run the Streamlit application
-CMD ["streamlit", "run", "app/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]  # Adjusted to match the correct path

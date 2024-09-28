@@ -1,14 +1,12 @@
+# main.py
 from fastapi import FastAPI
-from backend.api import app as api_app  # Import your FastAPI app from api.py
+from api import SalesAPI
+import uvicorn
 
-# Initialize the main FastAPI app
-app = FastAPI()
-
-# Include the routes from api.py
-app.mount("/api", api_app)  # This mounts your API under the /api path
+# Initialize the SalesAPI which includes the FastAPI app
+sales_api = SalesAPI()
 
 # If you want to add any additional routes or middleware to the main app, do so here.
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(sales_api.app, host="0.0.0.0", port=8000)

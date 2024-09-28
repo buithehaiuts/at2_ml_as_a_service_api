@@ -2,21 +2,31 @@ import os
 import streamlit as st
 import requests
 from datetime import datetime
+import logging
 
 # API URL for the FastAPI backend
-FASTAPI_URL = os.getenv("FASTAPI_URL", "http://fastapi-backend:8000")  # Use the service name for internal communication
+FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")  # Use localhost for local access
+
+
+# # API URL for the FastAPI backend
+# FASTAPI_URL = os.getenv("FASTAPI_URL", "http://fastapi-backend:8000")  # Use the service name for internal communication
 
 st.title("Sales Prediction App")
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # Function to fetch store and item data from the backend
 def fetch_store_item_data():
     try:
         with st.spinner("Fetching store and item IDs..."):
+            logging.info(f"Fetching store and item data from {FASTAPI_URL}/data/ids/")
             response = requests.get(f"{FASTAPI_URL}/data/ids/")
             response.raise_for_status()
             return response.json()
     except requests.exceptions.RequestException as e:
         st.error(f"Error fetching store and item data: {e}")
+        logging.error(f"Request failed: {e}")
         return None
 
 # Function to fetch training data

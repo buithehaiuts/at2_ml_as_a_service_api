@@ -1,20 +1,20 @@
 # Use a Python base image
-FROM python:3.11.4
+FROM python:3.9
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the requirements.txt to the working directory
-COPY requirements.txt .
+# Copy the requirements file to the working directory
+COPY ./app/requirements.txt ./
 
-# Install the dependencies
-RUN pip install --no-cache-dir -r requirements.txt 
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire app folder from the host to the /app folder in the container
-COPY . /app
+# Copy the application code to the container
+COPY ./app /app
 
-# Expose the port that Streamlit will run on
-EXPOSE 8501  
+# Expose the port Streamlit runs on
+EXPOSE 8501
 
-# Set the command to run the Streamlit application
-CMD ["streamlit", "run", "app/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]  # Adjusted to match the correct path
+# Command to run the Streamlit app
+CMD ["streamlit", "run", "frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

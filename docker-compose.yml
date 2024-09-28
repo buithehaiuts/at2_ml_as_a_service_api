@@ -1,16 +1,21 @@
 version: '3.8'
 
 services:
-  fastapi:
+  fastapi-backend:
     build:
       context: .
-      dockerfile: Dockerfile  # Ensure this Dockerfile can handle both FastAPI and Streamlit
+      dockerfile: Dockerfile  # Ensure this Dockerfile can handle FastAPI
     ports:
       - "8000:8000"
     volumes:
       - ./app:/app  # Maps the app folder from host to container
     environment:
       - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   streamlit:
     build:
@@ -22,4 +27,7 @@ services:
       - ./app:/app  # Maps the app folder from host to container
     environment:
       - PYTHONUNBUFFERED=1
+      - FASTAPI_URL=http://fastapi-backend:8000  # Point to FastAPI service
     command: ["streamlit", "run", "/app/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    depends_on:
+      fastapi-backend:  # Ensure Streamlit waits for FastAPI to start

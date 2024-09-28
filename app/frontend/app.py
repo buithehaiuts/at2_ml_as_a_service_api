@@ -53,6 +53,20 @@ if store_item_data is not None:
         if check_button:
             # Display selected store and item information
             st.write(f"Checking data for Store ID: {store_id}, Item ID: {item_id} on date: {date}")
-            # Here, you can call the prediction endpoint if needed
+
+            # Here you could add logic to call the sales prediction endpoint
+            try:
+                # Assuming you have a prediction endpoint at /sales/stores/items/
+                prediction_response = requests.get(f"{FASTAPI_URL}/sales/stores/items/", params={
+                    "date": date.strftime('%Y-%m-%d'),
+                    "store_id": store_id,
+                    "item_id": item_id
+                })
+                prediction_response.raise_for_status()
+                prediction_data = prediction_response.json()
+                st.write(f"Predicted Sales: {prediction_data['prediction']}")
+            except requests.exceptions.RequestException as e:
+                st.error(f"Error fetching prediction data: {e}")
+
 else:
     st.error("Failed to load store and item data.")

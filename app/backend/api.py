@@ -6,6 +6,11 @@ import json
 import requests
 import pickle
 from datetime import datetime, timedelta
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class DataLoader:
     """Class responsible for loading DataFrames from JSON and Dropbox."""
@@ -13,8 +18,8 @@ class DataLoader:
     def __init__(self, json_file_path: str):
         self.json_file_path = json_file_path
         self.train_df, self.test_df = self.load_dataframes()
-        self.store_ids = self.train_df['store_id'].unique().tolist()
-        self.item_ids = self.train_df['item_id'].unique().tolist()
+        self.store_ids = self.train_df['store_id'].unique().tolist() if self.train_df is not None else []
+        self.item_ids = self.train_df['item_id'].unique().tolist() if self.train_df is not None else []
 
     def load_dataframes(self):
         """Load training and testing DataFrames from JSON and Dropbox links."""
@@ -40,7 +45,7 @@ class DataLoader:
                     data = pickle.load(response.raw)
                     return data
                 except Exception as e:
-                    print(f"Error loading pickle: {e}")
+                    logger.error(f"Error loading pickle from {dropbox_link}: {e}")
                     return None
 
             # Load training data
@@ -64,17 +69,20 @@ class DataLoader:
             return train_df, test_df
 
         except Exception as e:
-            print(f"An error occurred while loading DataFrames: {e}")
-            return None, None
+            logger.error(f"An error occurred while loading DataFrames: {e}")
+            return pd.DataFrame(), pd.DataFrame()
 
     def display_dataframe(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Display basic information about the DataFrame."""
+        if df.empty:
+            return {"error": "Dataframe is empty or not loaded"}
         return {
             "columns": df.columns.tolist(),
             "shape": df.shape,
             "head": df.head().to_dict(orient='records'),
             "tail": df.tail().to_dict(orient='records')
         }
+
 
 class SalesAPI:
     """Class that defines API endpoints for sales prediction."""
@@ -103,22 +111,30 @@ class SalesAPI:
 
         @self.app.get("/health/")
         def health_check() -> Dict[str, str]:
-            return {"message": "Welcome to the Sales Prediction API!"}
+            return {"message": "Sales Prediction API is running!"}
 
         @self.app.get("/sales/national/")
         def forecast_sales(date: str) -> Dict[str, float]:
             self.validate_date(date)
-            forecast_data = self.generate_forecast(date)
-            return forecast_data
+            try:
+                forecast_data = self.generate_forecast(date)
+                return forecast_data
+            except Exception as e:
+                logger.error(f"Error generating forecast: {e}")
+                raise HTTPException(status_code=500, detail="Internal server error while forecasting sales")
 
         @self.app.get("/sales/stores/items/")
         def predict_sales(date: str, store_id: int, item_id: int) -> Dict[str, float]:
             self.validate_date(date)
             self.validate_store_item(store_id, item_id)
 
-            # Placeholder prediction logic (replace with actual model logic)
-            prediction = {"prediction": 19.72}  # Replace with actual prediction logic
-            return prediction
+            try:
+                # Placeholder prediction logic (replace with actual model logic)
+                prediction = {"prediction": 19.72}  # Replace with actual prediction logic
+                return prediction
+            except Exception as e:
+                logger.error(f"Error predicting sales: {e}")
+                raise HTTPException(status_code=500, detail="Internal server error while predicting sales")
 
         @self.app.get("/data/display/train/")
         def display_train_data() -> Dict[str, Any]:
@@ -133,6 +149,8 @@ class SalesAPI:
         @self.app.get("/data/ids/")
         def get_ids() -> Dict[str, List[int]]:
             """Return available store and item IDs."""
+            if not self.data_loader.store_ids or not self.data_loader.item_ids:
+                raise HTTPException(status_code=404, detail="Store or item data not available")
             return {
                 "store_ids": self.data_loader.store_ids,
                 "item_ids": self.data_loader.item_ids

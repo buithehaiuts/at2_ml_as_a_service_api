@@ -1,33 +1,16 @@
 version: '3.8'
 
 services:
-  fastapi-backend:
+  app:
     build:
       context: .
-      dockerfile: Dockerfile.backend  # Specify the backend Dockerfile
+      dockerfile: Dockerfile  # Specify the single Dockerfile
     ports:
-      - "8000:8000"  # Map port 8000 on the host to port 8000 in the container
+      - "8000:8000"  # Map port for FastAPI
+      - "8501:8501"  # Map port for Streamlit
     volumes:
-      - ./app/backend:/app/backend  # Map the backend directory
+      - ./app/backend:/app/backend  # Optional: Map the backend directory
+      - ./app/frontend:/app/frontend  # Optional: Map the frontend directory
     environment:
       - PYTHONUNBUFFERED=1  # Ensure logs are printed in real-time
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]  # Health check command
-      interval: 30s  # Time between health checks
-      timeout: 10s  # Timeout for health check command
-      retries: 5  # Number of retries before considering the service unhealthy
-
-  streamlit:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend  # Specify the frontend Dockerfile
-    ports:
-      - "8501:8501"  # Map port 8501 on the host to port 8501 in the container
-    volumes:
-      - ./app/frontend:/app/frontend  # Map the frontend directory
-    environment:
-      - PYTHONUNBUFFERED=1  # Ensure logs are printed in real-time
-      - FASTAPI_URL=http://fastapi-backend:8000  # Point to FastAPI service
-    command: ["streamlit", "run", "/app/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]  # Command to run Streamlit
-    depends_on:
-      - fastapi-backend  # Ensure Streamlit waits for FastAPI to start
+      - FASTAPI_URL=http://localhost:8000  # Point to FastAPI service

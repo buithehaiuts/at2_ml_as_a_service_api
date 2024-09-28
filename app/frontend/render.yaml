@@ -1,27 +1,32 @@
-# render.yaml
-
+# FastAPI Backend Service
 services:
-  - name: streamlit-frontend
-    type: web
+  - type: web
+    name: fastapi-backend
     env: python
-    plan: free  # You can specify "starter", "standard", etc.
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0"  # Ensuring it binds to 0.0.0.0
+    startCommand: "uvicorn backend.api:SalesAPI().app --host 0.0.0.0 --port 8000"
+    plan: free  # Choose an appropriate plan
+    autoDeploy: true
     envVars:
-      - key: FASTAPI_URL
-        value: http://fastapi-backend:$PORT  # Use the service name for internal communication
-    healthCheckPath: "/"
-    autoDeploy: true
-    regions: 
-      - oregon  # You can change this to another region if needed
+      - key: PORT
+        value: "8000"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    healthCheckPath: "/health/"
+    regions: oregon  # Select your preferred region
 
-  - name: fastapi-backend
-    type: web
+  # Streamlit Frontend Service
+  - type: web
+    name: streamlit-frontend
     env: python
-    plan: free
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn app.api:app --host 0.0.0.0 --port $PORT"  # Ensure you bind to 0.0.0.0
-    healthCheckPath: "/health"  # Health check for FastAPI
+    startCommand: "streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0"
+    plan: free  # Choose an appropriate plan
     autoDeploy: true
-    regions: 
-      - oregon  # Match region with frontend for better performance
+    envVars:
+      - key: PORT
+        value: "8501"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    healthCheckPath: "/"
+    regions: oregon  # Select your preferred region

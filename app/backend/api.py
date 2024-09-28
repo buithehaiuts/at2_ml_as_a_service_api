@@ -1,123 +1,153 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, Any
 import pandas as pd
 import json
 import requests
 import pickle
 from datetime import datetime, timedelta
 
-app = FastAPI()
+class DataLoader:
+    """Class responsible for loading DataFrames from JSON and Dropbox."""
 
-class SalesPredictionRequest(BaseModel):
-    date: str
-    store_id: int
-    item_id: int
+    def __init__(self, json_file_path: str):
+        self.json_file_path = json_file_path
+        self.train_df, self.test_df = self.load_dataframes()
 
-# Load DataFrames from JSON
-def load_dataframes(json_file_path: str):
-    try:
-        # Load the JSON data from the file
-        with open(json_file_path, 'r') as json_file:
-            json_data = json.load(json_file)
+    def load_dataframes(self):
+        """Load training and testing DataFrames from JSON and Dropbox links."""
+        try:
+            with open(self.json_file_path, 'r') as json_file:
+                json_data = json.load(json_file)
 
-        # Extract train and test URLs into DataFrames
-        train_urls = json_data['train']
-        test_urls = json_data['test']
+            # Extract train and test URLs into DataFrames
+            train_urls = json_data['train']
+            test_urls = json_data['test']
 
-        # Create DataFrames
-        train_url_df = pd.DataFrame(train_urls.items(), columns=['part', 'url'])
-        test_url_df = pd.DataFrame(test_urls.items(), columns=['part', 'url'])
+            train_url_df = pd.DataFrame(train_urls.items(), columns=['part', 'url'])
+            test_url_df = pd.DataFrame(test_urls.items(), columns=['part', 'url'])
 
-        # Update URLs to download files
-        train_url_df['url'] = train_url_df['url'].str.replace('dl=0', 'dl=1')
-        test_url_df['url'] = test_url_df['url'].str.replace('dl=0', 'dl=1')
+            train_url_df['url'] = train_url_df['url'].str.replace('dl=0', 'dl=1')
+            test_url_df['url'] = test_url_df['url'].str.replace('dl=0', 'dl=1')
 
-        # Load pickle files into DataFrames
-        def load_pickle_from_dropbox(dropbox_link):
-            try:
-                response = requests.get(dropbox_link, stream=True)
-                response.raise_for_status()
-                data = pickle.load(response.raw)
-                return data
-            except Exception as e:
-                print(f"Error loading pickle: {e}")
-                return None
+            # Load pickle files into DataFrames
+            def load_pickle_from_dropbox(dropbox_link):
+                try:
+                    response = requests.get(dropbox_link, stream=True)
+                    response.raise_for_status()
+                    data = pickle.load(response.raw)
+                    return data
+                except Exception as e:
+                    print(f"Error loading pickle: {e}")
+                    return None
 
-        # Load training data
-        train_data = {}
-        for index, row in train_url_df.iterrows():
-            part = row['part']
-            url = row['url']
-            train_data[part] = load_pickle_from_dropbox(url)
+            # Load training data
+            train_data = {}
+            for _, row in train_url_df.iterrows():
+                part = row['part']
+                url = row['url']
+                train_data[part] = load_pickle_from_dropbox(url)
 
-        # Concatenate all training DataFrames into a single DataFrame
-        train_df = pd.concat([df for df in train_data.values() if df is not None], ignore_index=True)
+            train_df = pd.concat([df for df in train_data.values() if df is not None], ignore_index=True)
 
-        # Load testing data
-        test_data = {}
-        for index, row in test_url_df.iterrows():
-            part = row['part']
-            url = row['url']
-            test_data[part] = load_pickle_from_dropbox(url)
+            # Load testing data
+            test_data = {}
+            for _, row in test_url_df.iterrows():
+                part = row['part']
+                url = row['url']
+                test_data[part] = load_pickle_from_dropbox(url)
 
-        # Concatenate all testing DataFrames into a single DataFrame
-        test_df = pd.concat([df for df in test_data.values() if df is not None], ignore_index=True)
+            test_df = pd.concat([df for df in test_data.values() if df is not None], ignore_index=True)
 
-        return train_df, test_df
+            return train_df, test_df
 
-    except Exception as e:
-        print(f"An error occurred while loading DataFrames: {e}")
-        return None, None
+        except Exception as e:
+            print(f"An error occurred while loading DataFrames: {e}")
+            return None, None
 
-# Load DataFrames on startup 
-train_df, test_df = load_dataframes('data.json')
+    def display_dataframe(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Display basic information about the DataFrame."""
+        return {
+            "columns": df.columns.tolist(),
+            "shape": df.shape,
+            "head": df.head().to_dict(orient='records'),
+            "tail": df.tail().to_dict(orient='records')
+        }
 
-@app.get("/")
-def read_root() -> Dict[str, Dict[str, str]]:
-    return {
-        "project": "Sales Prediction API",
-        "endpoints": {
-            "/": "Project objectives, list of endpoints, etc.",
-            "/health/": "Health check endpoint",
-            "/sales/national/": "Forecast sales for the next 7 days",
-            "/sales/stores/items/": "Predict sales for specific store and item"
-        },
-        "github": "https://github.com/buithehaiuts/at2_ml_as_a_service_api"
-    }
 
-@app.get("/health/")
-def health_check() -> Dict[str, str]:
-    return {"message": "Welcome to the Sales Prediction API!"}
+class SalesAPI:
+    """Class that defines API endpoints for sales prediction."""
 
-@app.get("/sales/national/")
-def forecast_sales(date: str) -> Dict[str, float]:
-    try:
-        # Validate the date format
-        datetime.strptime(date, '%Y-%m-%d')
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Date must be in YYYY-MM-DD format")
+    def __init__(self):
+        self.data_loader = DataLoader('data.json')
+        self.app = FastAPI()
+        self.setup_routes()
 
-    # Generate forecasted sales for the next 7 days
-    forecast_data = {}
-    start_date = datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)  # Exclude input date
-    for i in range(7):
-        forecast_date = start_date + timedelta(days=i)
-        forecast_data[forecast_date.strftime('%Y-%m-%d')] = 10000 + i * 1.12  # Example increment logic
+    def setup_routes(self):
+        @self.app.get("/")
+        def read_root() -> Dict[str, Dict[str, str]]:
+            return {
+                "project": "Sales Prediction API",
+                "endpoints": {
+                    "/": "Project objectives, list of endpoints, etc.",
+                    "/health/": "Health check endpoint",
+                    "/sales/national/": "Forecast sales for the next 7 days",
+                    "/sales/stores/items/": "Query sales for specific store and item",
+                    "/data/display/train/": "Display training DataFrame",
+                    "/data/display/test/": "Display testing DataFrame"
+                },
+                "github": "https://github.com/buithehaiuts/at2_ml_as_a_service_api"
+            }
 
-    return forecast_data
+        @self.app.get("/health/")
+        def health_check() -> Dict[str, str]:
+            return {"message": "Welcome to the Sales Prediction API!"}
 
-@app.get("/sales/stores/items/")
-def predict_sales(date: str, store_id: int, item_id: int) -> Dict[str, float]:
-    # Validate input parameters
-    try:
-        datetime.strptime(date, '%Y-%m-%d')
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Date must be in YYYY-MM-DD format")
+        @self.app.get("/sales/national/")
+        def forecast_sales(date: str) -> Dict[str, float]:
+            self.validate_date(date)
+            forecast_data = self.generate_forecast(date)
+            return forecast_data
 
-    if store_id <= 0 or item_id <= 0:
-        raise HTTPException(status_code=400, detail="store_id and item_id must be positive integers")
-    
-    # Placeholder prediction logic
-    prediction = {"prediction": 19.72}  # Replace with actual prediction logic
-    return prediction
+        @self.app.get("/sales/stores/items/")
+        def predict_sales(date: str, store_id: int, item_id: int) -> Dict[str, float]:
+            self.validate_date(date)
+            self.validate_store_item(store_id, item_id)
+
+            # Placeholder prediction logic (replace with actual model logic)
+            prediction = {"prediction": 19.72}  # Replace with actual prediction logic
+            return prediction
+
+        @self.app.get("/data/display/train/")
+        def display_train_data() -> Dict[str, Any]:
+            """Display the training DataFrame information."""
+            return self.data_loader.display_dataframe(self.data_loader.train_df)
+
+        @self.app.get("/data/display/test/")
+        def display_test_data() -> Dict[str, Any]:
+            """Display the testing DataFrame information."""
+            return self.data_loader.display_dataframe(self.data_loader.test_df)
+
+    @staticmethod
+    def validate_date(date: str):
+        """Validate the date format."""
+        try:
+            datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Date must be in YYYY-MM-DD format")
+
+    @staticmethod
+    def validate_store_item(store_id: int, item_id: int):
+        """Validate store and item IDs."""
+        if store_id <= 0 or item_id <= 0:
+            raise HTTPException(status_code=400, detail="store_id and item_id must be positive integers")
+
+    @staticmethod
+    def generate_forecast(date: str) -> Dict[str, float]:
+        """Generate forecasted sales for the next 7 days."""
+        forecast_data = {}
+        start_date = datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)
+        for i in range(7):
+            forecast_date = start_date + timedelta(days=i)
+            forecast_data[forecast_date.strftime('%Y-%m-%d')] = 10000 + i * 1.12  # Example increment logic
+        return forecast_data

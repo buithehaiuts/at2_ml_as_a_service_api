@@ -8,28 +8,41 @@ FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")  # Adjust as nee
 
 st.title("Sales Prediction App")
 
-with st.form(key='prediction_form'):
-    date = st.text_input("Date (YYYY-MM-DD)", value=datetime.now().strftime("%Y-%m-%d"))
-    store_id = st.number_input("Store ID", min_value=1)
-    item_id = st.number_input("Item ID", min_value=1)
-    submit_button = st.form_submit_button("Predict Sales")
+# Function to fetch store and item data from the backend
+def fetch_store_item_data():
+    try:
+        with st.spinner("Fetching store and item data..."):
+            response = requests.get(f"{FASTAPI_URL}/data/display/train/")
+            response.raise_for_status()
+            return response.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error fetching store and item data: {e}")
+        return None
 
-    if submit_button:
-        try:
-            datetime.strptime(date, "%Y-%m-%d")
+# Load store and item data when the app runs
+store_item_data = fetch_store_item_data()
 
-            with st.spinner("Fetching data..."):
-                response = requests.get(f"{FASTAPI_URL}/sales/stores/items/", params={
-                    "date": date,
-                    "store_id": store_id,
-                    "item_id": item_id
-                })
-                response.raise_for_status()
+if store_item_data is not None:
+    st.write("Store and Item Data:")
+    st.json(store_item_data)  # Display the fetched data in a JSON format
+    
+    with st.form(key='data_check_form'):
+        # User input for date with a text box
+        date = st.date_input("Select Date", value=datetime.now())
 
-                prediction = response.json()
-                st.success(f"Predicted sales: ${prediction['prediction']:.2f}")
+        # Dropdown for Store ID
+        store_ids = [1, 2, 3]  # Replace with actual store IDs fetched from your data
+        store_id = st.selectbox("Select Store ID", options=store_ids)
 
-        except ValueError:
-            st.error("Invalid date format. Please enter a date in YYYY-MM-DD format.")
-        except requests.exceptions.RequestException as e:
-            st.error(f"Error making request to backend: {e}")
+        # Dropdown for Item ID
+        item_ids = [101, 102, 103]  # Replace with actual item IDs fetched from your data
+        item_id = st.selectbox("Select Item ID", options=item_ids)
+
+        check_button = st.form_submit_button("Check Data")
+
+        if check_button:
+            # Display selected store and item information (mockup)
+            st.write(f"Checking data for Store ID: {store_id}, Item ID: {item_id} on date: {date}")
+            # You can add additional logic here to retrieve and display specific data for the given store and item
+else:
+    st.error("Failed to load store and item data.")

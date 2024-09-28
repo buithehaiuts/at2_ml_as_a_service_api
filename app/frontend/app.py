@@ -54,9 +54,8 @@ if store_item_data is not None:
             # Display selected store and item information
             st.write(f"Checking data for Store ID: {store_id}, Item ID: {item_id} on date: {date}")
 
-            # Here you could add logic to call the sales prediction endpoint
+            # Call the sales prediction endpoint
             try:
-                # Assuming you have a prediction endpoint at /sales/stores/items/
                 prediction_response = requests.get(f"{FASTAPI_URL}/sales/stores/items/", params={
                     "date": date.strftime('%Y-%m-%d'),
                     "store_id": store_id,
@@ -64,7 +63,12 @@ if store_item_data is not None:
                 })
                 prediction_response.raise_for_status()
                 prediction_data = prediction_response.json()
-                st.write(f"Predicted Sales: {prediction_data['prediction']}")
+
+                # Check if prediction data has the expected structure
+                if 'prediction' in prediction_data:
+                    st.write(f"Predicted Sales: {prediction_data['prediction']}")
+                else:
+                    st.error("Prediction data format is unexpected.")
             except requests.exceptions.RequestException as e:
                 st.error(f"Error fetching prediction data: {e}")
 

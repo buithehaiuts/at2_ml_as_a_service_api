@@ -1,86 +1,61 @@
-import os
 import streamlit as st
 import requests
-from datetime import datetime
-import logging
+from datetime import date
 
-# API URL for the FastAPI backend
-FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")  # Use localhost for local access
+# Update BASE_URL to the service name defined in your Docker Compose
+BASE_URL = "http://fastapi-backend:8000"  # Use the service name for Docker networking
 
+st.title("Sales Prediction Application")
 
-# # API URL for the FastAPI backend
-# FASTAPI_URL = os.getenv("FASTAPI_URL", "http://fastapi-backend:8000")  # Use the service name for internal communication
-
-st.title("Sales Prediction App")
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-# Function to fetch store and item data from the backend
-def fetch_store_item_data():
+# Helper function for API requests
+def fetch_api(url, method='get', json_data=None):
     try:
-        with st.spinner("Fetching store and item IDs..."):
-            logging.info(f"Fetching store and item data from {FASTAPI_URL}/data/ids/")
-            response = requests.get(f"{FASTAPI_URL}/data/ids/")
-            response.raise_for_status()
-            return response.json()
+        if method == 'get':
+            response = requests.get(url)
+        else:
+            response = requests.post(url, json=json_data)
+        
+        response.raise_for_status()  # Raise an error for bad responses
+        return response.json()
     except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching store and item data: {e}")
-        logging.error(f"Request failed: {e}")
+        st.error(f"API error: {e}")
         return None
 
-# Function to fetch training data
-def fetch_training_data():
-    try:
-        with st.spinner("Fetching training data..."):
-            response = requests.get(f"{FASTAPI_URL}/data/display/train/")
-            response.raise_for_status()
-            return response.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching training data: {e}")
-        return None
+# Health Check
+if st.button("Check API Health"):
+    health_data = fetch_api(f"{BASE_URL}/health/")
+    if health_data and health_data.get("status") == "healthy":
+        st.success("API is healthy!")
+    else:
+        st.error("API is not responding!")
 
-# Load store and item data when the app runs
-store_item_data = fetch_store_item_data()
-training_data = fetch_training_data()
+# National Sales Forecast
+st.header("National Sales Forecast")
+date_input = st.date_input("Select a date for forecast", min_value=date.today())
+if st.button("Get National Sales Forecast"):
+    with st.spinner("Fetching forecast..."):
+        forecast_data = fetch_api(f"{BASE_URL}/sales/national/?date={date_input}")
+        if forecast_data:
+            st.write("Sales Forecast:")
+            st.json(forecast_data)
 
-if store_item_data is not None:
-    store_ids = sorted(store_item_data['store_ids'])
-    item_ids = sorted(store_item_data['item_ids'])
+# Store and Item Sales Prediction
+st.header("Store Item Sales Prediction")
+date_input = st.date_input("Select date for prediction", min_value=date.today())
+store_id = st.number_input("Enter Store ID", min_value=1)
+item_id = st.number_input("Enter Item ID", min_value=1)
 
-    with st.form(key='data_check_form'):
-        # User input for date with a date picker
-        date = st.date_input("Select Date", value=datetime.now())
-
-        # Dropdown for Store ID
-        store_id = st.selectbox("Select Store ID", options=store_ids)
-
-        # Dropdown for Item ID
-        item_id = st.selectbox("Select Item ID", options=item_ids)
-
-        check_button = st.form_submit_button("Check Data")
-
-        if check_button:
-            # Display selected store and item information
-            st.write(f"Checking data for Store ID: {store_id}, Item ID: {item_id} on date: {date}")
-
-            # Call the sales prediction endpoint
-            try:
-                prediction_response = requests.get(f"{FASTAPI_URL}/sales/stores/items/", params={
-                    "date": date.strftime('%Y-%m-%d'),
-                    "store_id": store_id,
-                    "item_id": item_id
-                })
-                prediction_response.raise_for_status()
-                prediction_data = prediction_response.json()
-
-                # Check if prediction data has the expected structure
-                if 'prediction' in prediction_data:
-                    st.write(f"Predicted Sales: {prediction_data['prediction']}")
-                else:
-                    st.error("Prediction data format is unexpected.")
-            except requests.exceptions.RequestException as e:
-                st.error(f"Error fetching prediction data: {e}")
-
-else:
-    st.error("Failed to load store and item data.")
+if st.button("Predict Sales"):
+    if store_id <= 0 or item_id <= 0:
+        st.error("Store ID and Item ID must be greater than zero.")
+    else:
+        payload = {
+            "date": str(date_input),
+            "store_id": store_id,
+            "item_id": item_id
+        }
+        with st.spinner("Predicting sales..."):
+            prediction_data = fetch_api(f"{BASE_URL}/sales/stores/items/", method='post', json_data=payload)
+            if prediction_data:
+                st.write("Sales Prediction:")
+                st.json(prediction_data)

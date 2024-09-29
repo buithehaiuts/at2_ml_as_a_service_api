@@ -1,7 +1,7 @@
 services:
   fastapi-backend:
     build:
-      context: .  # Set context to the root of the project
+      context: .
       dockerfile: app/backend/Dockerfile
     ports:
       - "8000:8000"
@@ -9,14 +9,18 @@ services:
       - PORT=8000
       - PYTHONUNBUFFERED=1
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      test: ["CMD", "curl", "-f", "http://fastapi-backend:8000/health/"]
       interval: 30s
       timeout: 10s
       retries: 3
+    volumes:
+      - ./app/backend:/app/backend
+    networks:
+      - my_network
 
   streamlit-frontend:
     build:
-      context: .  # Set context to the root of the project
+      context: .
       dockerfile: app/frontend/Dockerfile
     ports:
       - "8501:8501"
@@ -24,7 +28,14 @@ services:
       - PORT=8501
       - PYTHONUNBUFFERED=1
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8501/"]
+      test: ["CMD", "curl", "-f", "http://streamlit-frontend:8501/"]
       interval: 30s
       timeout: 10s
       retries: 3
+    volumes:
+      - ./app/frontend:/app/frontend
+    networks:
+      - my_network
+
+networks:
+  my_network:

@@ -32,3 +32,12 @@ services:
     healthCheckPath: "/"  # Health check endpoint
     regions: oregon  # Preferred region
     dockerfilePath: "app/frontend/Dockerfile"  # Path to the frontend Dockerfile
+
+# Networking settings to allow the Streamlit app to access the FastAPI app
+  - type: web
+    name: api-network
+    plan: free
+    autoDeploy: true
+    regions: oregon
+    env: docker
+    healthCheckPath: "/health/"

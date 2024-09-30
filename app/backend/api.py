@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Query, status
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import joblib  # or you can use pickle
 import pandas as pd  # Assuming you'll use pandas for data handling
 import os  # For constructing file paths
+import uvicorn
 
 # Define the models
 class HealthCheck(BaseModel):
@@ -20,33 +21,41 @@ class SalesResponse(BaseModel):
     """Response model containing a list of sales."""
     sales: List[Sale]
 
-# Create FastAPI instance
-app = FastAPI()
+# Create FastAPI instance with versioning
+app = FastAPI(
+    title="Sales Forecast API",
+    description="API for forecasting sales using various models.",
+    version="1.0.0"
+)
 
-# Load models
-def load_model(model_path: str):
-    """Load the prediction model from a file."""
+# Load models into a centralized dictionary
+models = {}
+
+def load_model(model_name: str, model_path: str):
+    """Load a prediction model from a file."""
     try:
-        model = joblib.load(model_path)  # Load the model
+        model = joblib.load(model_path)
+        print(f"Model '{model_name}' loaded successfully from {model_path}")
         return model
     except Exception as e:
-        print(f"Error loading model from {model_path}: {e}")
+        print(f"Error loading model '{model_name}': {e}")
         return None
 
-# Load the models from the 'models' directory
-prophet_model = load_model(os.path.join('models', 'prophet.pkl'))
-prophet_event_model = load_model(os.path.join('models', 'prophet_event.pkl'))
-prophet_holiday_model = load_model(os.path.join('models', 'prophet_holiday.pkl'))
-prophet_month_model = load_model(os.path.join('models', 'prophet_month.pkl'))
-
-# Startup event to print registered routes
+# On startup, load all models
 @app.on_event("startup")
 async def startup_event():
-    print("Registered routes:")
-    for route in app.routes:
-        print(route)
+    global models
+    models['prophet'] = load_model('prophet', os.path.join('models', 'prophet.pkl'))
+    models['prophet_event'] = load_model('prophet_event', os.path.join('models', 'prophet_event.pkl'))
+    models['prophet_holiday'] = load_model('prophet_holiday', os.path.join('models', 'prophet_holiday.pkl'))
+    models['prophet_month'] = load_model('prophet_month', os.path.join('models', 'prophet_month.pkl'))
 
-# Root endpoint
+    # Check if all models are loaded correctly
+    for model_name, model in models.items():
+        if model is None:
+            print(f"Warning: {model_name} model failed to load.")
+
+# Root endpoint for basic info
 @app.get("/")
 async def read_root():
     """Return a welcome message at the root endpoint."""
@@ -55,56 +64,74 @@ async def read_root():
 # Health check endpoint
 @app.get(
     "/health/",
-    tags=["healthcheck"],
+    tags=["Healthcheck"],
     response_model=HealthCheck,
-    summary="Health Check Performed",
-    response_description="Returns HTTP Status Code 200 (OK)",
+    summary="Health Check",
+    response_description="Returns 200 if healthy",
     status_code=status.HTTP_200_OK,
 )
 async def health_check():
-    """Health Check endpoint."""
+    """Health Check endpoint to ensure the API is up."""
     return HealthCheck(status="healthy")
 
 # Prediction function
-def predict(model, input: pd.DataFrame) -> Dict[str, Any]:
-    """Make a prediction using the model."""
+def predict(model, input: pd.DataFrame) -> List[Dict[str, Any]]:
+    """Make a prediction using the selected model."""
     if model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
+
     try:
         predictions = model.predict(input)
-        return predictions.tolist()  # Convert predictions to list for JSON response
+        return predictions.tolist()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
-# Endpoint for national sales forecast
-@app.get("/sales/national/")
-async def national_sales_forecast(date: str, item_id: str, store_id: str):
-    """Get national sales forecast."""
+# Endpoint for national sales forecast (uses query parameters)
+@app.get("/v1/sales/national/")
+async def national_sales_forecast(
+    date: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
+    item_id: str = Query(..., description="Item ID for the product"),
+    store_id: str = Query(..., description="Store ID for the store"),
+    model_type: str = Query('prophet', description="Model type (default: prophet)")
+):
+    """Get national sales forecast using the specified model."""
+    if model_type not in models:
+        raise HTTPException(status_code=404, detail=f"Model '{model_type}' not found.")
+
     # Prepare input for prediction
-    format_data = {
+    forecast_input = pd.DataFrame({
         'date': [date],
         'item_id': [item_id],
         'store_id': [store_id]
-    }
-    forecast_input = pd.DataFrame(format_data)  # Convert to DataFrame for prediction
-    pred = predict(prophet_model, forecast_input)  # Call predict method with model and input
-    return {"prediction": pred}
+    })
 
-# Endpoint for predicting sales based on store and item
-@app.post("/sales/stores/items/")
-async def predict_sales(date: str, item_id: str, store_id: str):
-    """Predict sales based on store and item."""
-    predictive_input = {
+    pred = predict(models[model_type], forecast_input)
+    return {"model": model_type, "prediction": pred}
+
+# Endpoint for predicting sales based on store and item (POST request for input data)
+@app.post("/v1/sales/stores/items/")
+async def predict_sales(
+    date: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
+    item_id: str = Query(..., description="Item ID for the product"),
+    store_id: str = Query(..., description="Store ID for the store"),
+    model_type: str = Query('prophet', description="Model type (default: prophet)")
+):
+    """Predict sales based on store and item using a POST request."""
+    if model_type not in models:
+        raise HTTPException(status_code=404, detail=f"Model '{model_type}' not found.")
+    
+    # Prepare input for prediction
+    predictive_input = pd.DataFrame({
         'date': [date],
         'item_id': [item_id],
         'store_id': [store_id]
-    }
-    predictive_df = pd.DataFrame(predictive_input)  # Convert to DataFrame for prediction
-    pred = predict(prophet_model, predictive_df) 
-    return {"prediction": pred}
+    })
 
-# Run the application if this script is executed directly
+    pred = predict(models[model_type], predictive_input)
+    return {"model": model_type, "prediction": pred}
+
+# Run the application if executed directly
 if __name__ == "__main__":
-    import uvicorn
-    port = int(os.getenv("PORT", 8000))  # Get the port from environment variable or default to 8000
+    # Configure the port and host dynamically
+    port = int(os.getenv("PORT", 8000))  # Get the port from environment variables or default to 8000
     uvicorn.run(app, host="0.0.0.0", port=port)

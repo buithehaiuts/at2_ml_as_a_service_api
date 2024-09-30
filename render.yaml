@@ -29,7 +29,7 @@ services:
         value: "8501"  # Port to run the Streamlit app
       - key: PYTHONUNBUFFERED
         value: "1"  # Ensure logs are output in real-time
-    healthCheckPath: "/"  # Health check endpoint
+    healthCheckPath: "/health"  # Health check endpoint
     regions: oregon  # Preferred region
     dockerfilePath: "app/frontend/Dockerfile"  # Path to the frontend Dockerfile
 

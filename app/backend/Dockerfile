@@ -10,11 +10,11 @@ COPY requirements.txt ./
 # Install the dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code into the container, including subdirectories
-COPY backend/ . 
+# Copy the application code into the container
+COPY ./backend/ . 
 
 # Expose the port the app runs on
-EXPOSE 8000  # Expose port 8000 for the FastAPI app
+EXPOSE 8000
 
 # Command to run FastAPI
 CMD ["uvicorn", "api:SalesAPI().app", "--host", "0.0.0.0", "--port", "8000"]

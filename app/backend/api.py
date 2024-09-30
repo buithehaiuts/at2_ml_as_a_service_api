@@ -12,26 +12,30 @@ class Sale(BaseModel):
 class SalesResponse(BaseModel):
     sales: List[Sale]
 
+# Main FastAPI application class
 class SalesAPI:
     def __init__(self):
         self.app = FastAPI()
         self.setup_routes()
 
     def setup_routes(self):
+        # Health check endpoint
         @self.app.get("/health/")
         def health_check():
             return {"status": "healthy"}
 
+        # Endpoint for national sales forecast
         @self.app.get("/sales/national/")
-        def national_sales_forecast(date: str):
+        async def national_sales_forecast(date: str):
             # Your logic to calculate the national sales forecast based on the date
             # Replace with actual logic
             return {"forecast": f"Sample forecast data for {date}"}
 
+        # Endpoint for predicting sales based on store and item
         @self.app.post("/sales/stores/items/")
-        def predict_sales(item: Sale):  # Replace with your actual model
+        async def predict_sales(item: Sale):  # You may want to add more parameters here
             # Your logic to predict sales based on store_id, item_id, and date
-            return {"prediction": "Sample prediction data"}
+            return {"prediction": f"Sample prediction data for item {item.id} on {item.date}"}
 
 # This allows the FastAPI app to be imported and run directly
 api = SalesAPI()

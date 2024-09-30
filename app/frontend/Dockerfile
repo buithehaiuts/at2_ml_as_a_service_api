@@ -11,7 +11,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the frontend folder containing app.py into the container
-COPY frontend/ ./frontend
+COPY app/frontend/ ./frontend
 
 # Expose the port the app runs on
 EXPOSE 8501

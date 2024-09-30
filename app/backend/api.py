@@ -39,6 +39,13 @@ prophet_event_model = load_model(os.path.join('models', 'prophet_event.pkl'))
 prophet_holiday_model = load_model(os.path.join('models', 'prophet_holiday.pkl'))
 prophet_month_model = load_model(os.path.join('models', 'prophet_month.pkl'))
 
+# Startup event to print registered routes
+@app.on_event("startup")
+async def startup_event():
+    print("Registered routes:")
+    for route in app.routes:
+        print(route)
+
 # Root endpoint
 @app.get("/")
 async def read_root():

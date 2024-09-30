@@ -15,7 +15,7 @@ services:
         value: "1"  # Ensure logs are output in real-time
     healthCheckPath: "/health/"  # Health check endpoint
     regions: oregon  # Preferred region
-    dockerFilePath: "app/backend/Dockerfile"  # Path to the backend Dockerfile
+   ## dockerFilePath: "app/backend/Dockerfile"  # Path to the backend Dockerfile
 
   - type: web
     name: streamlit-frontend
@@ -31,5 +31,5 @@ services:
         value: "1"  # Ensure logs are output in real-time
     healthCheckPath: "/"  # Health check endpoint
     regions: oregon  # Preferred region
-    dockerFilePath: "app/frontend/Dockerfile"  # Path to the frontend Dockerfile
+##    dockerFilePath: "app/frontend/Dockerfile"  # Path to the frontend Dockerfile
     

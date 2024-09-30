@@ -3,7 +3,7 @@ import requests
 from datetime import date
 
 # Base URL for the FastAPI service
-BASE_URL = "https://fastapi-backend.onrender.com"
+BASE_URL = "https://fastapi-backend-mslg.onrender.com"
 
 st.title("Sales Prediction Application")
 

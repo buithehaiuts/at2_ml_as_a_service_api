@@ -19,9 +19,9 @@ services:
 
   - type: web
     name: streamlit-frontend
-    env: docker  # Change this to docker since you're using a Dockerfile
+    env: docker  # Docker environment for the Streamlit app
     buildCommand: "pip install -r requirements.txt"  # Install dependencies
-    startCommand: "streamlit run app.py --server.port 8501 --server.address 0.0.0.0"  # Start Streamlit
+    startCommand: "streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0"  # Updated to use the correct app.py path
     plan: free  # Choose an appropriate plan
     autoDeploy: true  # Enable auto-deployment on changes
     envVars:  # Environment variables

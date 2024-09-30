@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 from datetime import date
 
-# Update BASE_URL to the service name defined in your Docker Compose
-BASE_URL = "http://fastapi-backend:8000"  # Use the service name for Docker networking
+# Base URL for the FastAPI service
+BASE_URL = "https://fastapi-backend.onrender.com"
 
 st.title("Sales Prediction Application")
 
@@ -11,7 +11,7 @@ st.title("Sales Prediction Application")
 def fetch_api(url, method='get', json_data=None):
     try:
         if method == 'get':
-            response = requests.get(url)
+            response = requests.get(url, json=json_data)  # Added json_data for potential use
         else:
             response = requests.post(url, json=json_data)
         
@@ -34,7 +34,7 @@ st.header("National Sales Forecast")
 date_input = st.date_input("Select a date for forecast", min_value=date.today())
 if st.button("Get National Sales Forecast"):
     with st.spinner("Fetching forecast..."):
-        forecast_data = fetch_api(f"{BASE_URL}/sales/national/?date={date_input}")
+        forecast_data = fetch_api(f"{BASE_URL}/sales/national/", method='get', json_data={"date": str(date_input)})
         if forecast_data:
             st.write("Sales Forecast:")
             st.json(forecast_data)

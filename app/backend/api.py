@@ -5,6 +5,7 @@ import joblib  # or you can use pickle
 import pandas as pd  # Assuming you'll use pandas for data handling
 import os  # For constructing file paths
 
+# Define the models
 class HealthCheck(BaseModel):
     """Response model to validate and return when performing a health check."""
     status: str
@@ -17,78 +18,73 @@ class Sale(BaseModel):
 class SalesResponse(BaseModel):
     sales: List[Sale]
 
-# Main FastAPI application class
-class SalesAPI:
-    def __init__(self):
-        self.app = FastAPI()
-        self.setup_routes()
-        self.prophet_model = self.load_model(os.path.join('models', 'prophet.pkl'))  # Load the model
-        self.prophet_event_model = self.load_model(os.path.join('models', 'prophet_event.pkl'))  # Load event model
-        self.prophet_holiday_model = self.load_model(os.path.join('models', 'prophet_holiday.pkl'))  # Load holiday model
-        self.prophet_month_model = self.load_model(os.path.join('models', 'prophet_month.pkl'))  # Load month model
+# Create FastAPI instance
+app = FastAPI()
 
-    def load_model(self, model_path: str):
-        """Load the prediction model from a file."""
-        try:
-            model = joblib.load(model_path)  # Load the model
-            return model
-        except Exception as e:
-            print(f"Error loading model from {model_path}: {e}")
-            return None
+# Load models
+def load_model(model_path: str):
+    """Load the prediction model from a file."""
+    try:
+        model = joblib.load(model_path)  # Load the model
+        return model
+    except Exception as e:
+        print(f"Error loading model from {model_path}: {e}")
+        return None
 
-    def setup_routes(self):
-        # Health check endpoint
-        @self.app.get(
-            "/health/",
-            tags=["healthcheck"],
-            response_model=HealthCheck,
-            summary="Perform a Health Check",
-            response_description="Return HTTP Status Code 200 (OK)",
-            status_code=status.HTTP_200_OK,
-        )
-        async def health_check():
-            """Health Check endpoint."""
-            return HealthCheck(status="OK")
+# Load the models
+prophet_model = load_model(os.path.join('models', 'prophet.pkl'))  # Load the model
+prophet_event_model = load_model(os.path.join('models', 'prophet_event.pkl'))  # Load event model
+prophet_holiday_model = load_model(os.path.join('models', 'prophet_holiday.pkl'))  # Load holiday model
+prophet_month_model = load_model(os.path.join('models', 'prophet_month.pkl'))  # Load month model
 
-        # Endpoint for national sales forecast
-        @self.app.get("/sales/national/")
-        async def national_sales_forecast(date: str, item_id: str, store_id: str):
-            """Get national sales forecast."""
-            # Prepare input for prediction
-            format_data = {
-                'date': [date],
-                'item_id': [item_id],
-                'store_id': [store_id]
-            }
-            forecast_input = pd.DataFrame(format_data)  # Convert to DataFrame for prediction
-            pred = self.predict(self.prophet_model, forecast_input)  # Call predict method with model and input
-            return {"prediction": pred}
+# Health check endpoint
+@app.get(
+    "/health/",
+    tags=["healthcheck"],
+    response_model=HealthCheck,
+    summary="Perform a Health Check",
+    response_description="Return HTTP Status Code 200 (OK)",
+    status_code=status.HTTP_200_OK,
+)
+async def health_check():
+    """Health Check endpoint."""
+    return HealthCheck(status="OK")
 
-        # Endpoint for predicting sales based on store and item
-        @self.app.post("/sales/stores/items/")
-        async def predict_sales(date: str, item_id: str, store_id: str):
-            """Predict sales based on store and item."""
-            # Implement your logic for predicting sales here
-            predictive_input = {
-                'date': [date],
-                'item_id': [item_id],
-                'store_id': [store_id]
-            }
-            predictive_df = pd.DataFrame(predictive_input)  # Convert to DataFrame for prediction
-            pred = self.predict(self.prophet_model, predictive_df) 
-            return {"prediction": pred}
+# Endpoint for national sales forecast
+@app.get("/sales/national/")
+async def national_sales_forecast(date: str, item_id: str, store_id: str):
+    """Get national sales forecast."""
+    # Prepare input for prediction
+    format_data = {
+        'date': [date],
+        'item_id': [item_id],
+        'store_id': [store_id]
+    }
+    forecast_input = pd.DataFrame(format_data)  # Convert to DataFrame for prediction
+    pred = predict(prophet_model, forecast_input)  # Call predict method with model and input
+    return {"prediction": pred}
 
-    def predict(self, model, input):
-        """Ensure that you have the logic to predict using the model."""
-        if model is not None:
-            return model.predict(input)  # Use the model to make a prediction
-        else:
-            return {"error": "Model not loaded"}
+# Endpoint for predicting sales based on store and item
+@app.post("/sales/stores/items/")
+async def predict_sales(date: str, item_id: str, store_id: str):
+    """Predict sales based on store and item."""
+    predictive_input = {
+        'date': [date],
+        'item_id': [item_id],
+        'store_id': [store_id]
+    }
+    predictive_df = pd.DataFrame(predictive_input)  # Convert to DataFrame for prediction
+    pred = predict(prophet_model, predictive_df) 
+    return {"prediction": pred}
 
-# This allows the FastAPI app to be imported and run directly
-api = SalesAPI()
+def predict(model, input):
+    """Ensure that you have the logic to predict using the model."""
+    if model is not None:
+        return model.predict(input)  # Use the model to make a prediction
+    else:
+        return {"error": "Model not loaded"}
 
 # Run the application if this script is executed directly
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(api.app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -46,7 +46,7 @@ def load_model(model_name: str, model_path: str):
 @app.on_event("startup")
 async def startup_event():
     global models
-    dataset_path = Path(__file__).resolve().parent.parent / "models"
+    dataset_path =  "models"
     models['prophet'] = load_model('prophet', os.path.join(dataset_path, 'prophet.pkl'))
     models['prophet_event'] = load_model('prophet_event', os.path.join(dataset_path, 'prophet_event.pkl'))
     models['prophet_holiday'] = load_model('prophet_holiday', os.path.join(dataset_path, 'prophet_holiday.pkl'))

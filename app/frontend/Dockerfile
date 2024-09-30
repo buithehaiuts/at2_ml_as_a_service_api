@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Set the working directory inside the container
-WORKDIR /app/frontend
+WORKDIR /app
 
 # Copy the requirements.txt from the root of the project to the working directory
 COPY requirements.txt ./  
@@ -11,7 +11,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code into the container
-COPY ./app/frontend/ . 
+COPY frontend/ . 
 
 # Expose the port the app runs on
 EXPOSE 8501  # Expose port 8501 for the Streamlit app

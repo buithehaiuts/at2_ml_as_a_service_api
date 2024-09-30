@@ -11,7 +11,7 @@ st.title("Sales Prediction Application")
 def fetch_api(url, method='get', json_data=None):
     try:
         if method == 'get':
-            response = requests.get(url, json=json_data)  # Added json_data for potential use
+            response = requests.get(url, params=json_data)  # Use params for GET requests
         else:
             response = requests.post(url, json=json_data)
         

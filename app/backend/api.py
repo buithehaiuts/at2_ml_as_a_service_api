@@ -63,7 +63,7 @@ async def read_root():
 )
 async def health_check():
     """Health Check endpoint."""
-    return HealthCheck(status="OK")
+    return HealthCheck(status="healthy")
 
 # Prediction function
 def predict(model, input: pd.DataFrame) -> Dict[str, Any]:

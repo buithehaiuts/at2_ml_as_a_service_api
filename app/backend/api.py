@@ -106,4 +106,5 @@ async def predict_sales(date: str, item_id: str, store_id: str):
 # Run the application if this script is executed directly
 if __name__ == "__main__":
     import uvicorn
+    port = int(os.getenv("PORT", 8000))  # Get the port from environment variable or default to 8000
     uvicorn.run(app, host="0.0.0.0", port=8000)

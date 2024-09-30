@@ -50,7 +50,7 @@ async def read_root():
     "/health/",
     tags=["healthcheck"],
     response_model=HealthCheck,
-    summary="Perform a Health Check",
+    summary="Health Check Performed",
     response_description="Returns HTTP Status Code 200 (OK)",
     status_code=status.HTTP_200_OK,
 )

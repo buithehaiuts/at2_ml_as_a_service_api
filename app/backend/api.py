@@ -45,10 +45,11 @@ def load_model(model_name: str, model_path: str):
 @app.on_event("startup")
 async def startup_event():
     global models
-    models['prophet'] = load_model('prophet', os.path.join('models', 'prophet.pkl'))
-    models['prophet_event'] = load_model('prophet_event', os.path.join('models', 'prophet_event.pkl'))
-    models['prophet_holiday'] = load_model('prophet_holiday', os.path.join('models', 'prophet_holiday.pkl'))
-    models['prophet_month'] = load_model('prophet_month', os.path.join('models', 'prophet_month.pkl'))
+    dataset_path = Path(__file__).resolve().parent.parent / "models"
+    models['prophet'] = load_model('prophet', os.path.join(dataset_path, 'prophet.pkl'))
+    models['prophet_event'] = load_model('prophet_event', os.path.join(dataset_path', 'prophet_event.pkl'))
+    models['prophet_holiday'] = load_model('prophet_holiday', os.path.join(dataset_path, 'prophet_holiday.pkl'))
+    models['prophet_month'] = load_model('prophet_month', os.path.join(dataset_path, 'prophet_month.pkl'))
 
     # Check if all models are loaded correctly
     for model_name, model in models.items():

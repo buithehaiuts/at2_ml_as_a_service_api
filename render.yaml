@@ -5,7 +5,7 @@ services:
     name: fastapi-backend
     env: python
     buildCommand: "pip install -r requirements.txt"  # Install dependencies
-    startCommand: "uvicorn backend.api:SalesAPI().app --host 0.0.0.0 --port 8000"  # Start FastAPI
+    startCommand: "uvicorn backend.api:SalesAPI --host 0.0.0.0 --port 8000"  # Start FastAPI
     plan: free  # Choose an appropriate plan
     autoDeploy: true  # Enable auto-deployment on changes
     envVars:  # Environment variables

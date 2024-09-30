@@ -2,8 +2,8 @@
 
 services:
   - type: web
+    runtime: python
     name: fastapi-backend
-    env: docker
     buildCommand: "pip install -r requirements.txt"  # Install dependencies
     startCommand: "uvicorn backend.api:app --host 0.0.0.0 --port 8000"  # Start FastAPI
     plan: free  # Choose an appropriate plan
@@ -14,12 +14,11 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"  # Ensure logs are output in real-time
     healthCheckPath: "/health/"  # Health check endpoint
-    regions: oregon  # Preferred region
     dockerfilePath: "app/backend/Dockerfile"  # Path to the backend Dockerfile
 
   - type: web
     name: streamlit-frontend
-    env: docker  # Docker environment for the Streamlit app
+    runtime: python
     buildCommand: "pip install -r requirements.txt"  # Install dependencies
     startCommand: "streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0"  # Updated to use the correct app.py path
     plan: free  # Choose an appropriate plan
@@ -30,14 +29,12 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"  # Ensure logs are output in real-time
     healthCheckPath: "/health"  # Health check endpoint
-    regions: oregon  # Preferred region
     dockerfilePath: "app/frontend/Dockerfile"  # Path to the frontend Dockerfile
 
 # Networking settings to allow the Streamlit app to access the FastAPI app
   - type: web
+    runtime: python
     name: api-network
     plan: free
     autoDeploy: true
-    regions: oregon
-    env: docker
     healthCheckPath: "/health/"

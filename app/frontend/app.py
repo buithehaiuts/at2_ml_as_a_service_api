@@ -8,10 +8,10 @@ BASE_URL = "https://fastapi-backend.onrender.com"
 st.title("Sales Prediction Application")
 
 # Helper function for API requests
-def fetch_api(url, method='get', json_data=None):
+def fetch_api(url, method='get', json_data=None, params=None):
     try:
         if method == 'get':
-            response = requests.get(url, params=json_data)  # Use params for GET requests
+            response = requests.get(url, params=params)  # Use params for GET requests
         else:
             response = requests.post(url, json=json_data)
         
@@ -34,7 +34,7 @@ st.header("National Sales Forecast")
 date_input = st.date_input("Select a date for forecast", min_value=date.today())
 if st.button("Get National Sales Forecast"):
     with st.spinner("Fetching forecast..."):
-        forecast_data = fetch_api(f"{BASE_URL}/sales/national/", method='get', json_data={"date": str(date_input)})
+        forecast_data = fetch_api(f"{BASE_URL}/sales/national/", method='get', params={"date": str(date_input)})
         if forecast_data:
             st.write("Sales Forecast:")
             st.json(forecast_data)
@@ -49,10 +49,11 @@ if st.button("Predict Sales"):
     if store_id <= 0 or item_id <= 0:
         st.error("Store ID and Item ID must be greater than zero.")
     else:
+        # Create a Sale instance for prediction
         payload = {
-            "date": str(date_input),
-            "store_id": store_id,
-            "item_id": item_id
+            "id": item_id,  # Assuming item_id is used as id in Sale model
+            "amount": 0.0,  # Placeholder, adjust as needed
+            "date": str(date_input)
         }
         with st.spinner("Predicting sales..."):
             prediction_data = fetch_api(f"{BASE_URL}/sales/stores/items/", method='post', json_data=payload)

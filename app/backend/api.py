@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 # Pydantic model for a Sale
 class Sale(BaseModel):
@@ -12,6 +12,19 @@ class Sale(BaseModel):
 class SalesResponse(BaseModel):
     sales: List[Sale]
 
+# Pydantic model for the request payload for sales prediction
+class SalesPredictionRequest(BaseModel):
+    date: str
+    store_id: int
+    item_id: int
+
+# Pydantic model for the response of predictions
+class SalesPredictionResponse(BaseModel):
+    predicted_amount: float
+    date: str
+    store_id: int
+    item_id: int
+
 class SalesAPI:
     def __init__(self):
         self.app = FastAPI()
@@ -22,17 +35,26 @@ class SalesAPI:
         def health_check():
             return {"status": "healthy"}
 
-        @self.app.get("/sales/", response_model=SalesResponse)
-        def read_sales():
-            # Your logic to read sales data goes here
-            # Replace the following with actual data retrieval logic
+        @self.app.get("/sales/national/", response_model=SalesResponse)
+        def read_national_sales(date: str):
+            # Replace this with actual logic to get national sales data
             sample_sales = [
-                {"id": 1, "amount": 150.0, "date": "2024-01-01"},
-                {"id": 2, "amount": 250.0, "date": "2024-01-02"},
+                {"id": 1, "amount": 150.0, "date": date},
+                {"id": 2, "amount": 250.0, "date": date},
             ]
-            return {"sales": sample_sales}  # Example response with sample data
+            return {"sales": sample_sales}
 
-        # You can add more endpoints as needed, e.g., for sales prediction
+        @self.app.post("/sales/stores/items/", response_model=SalesPredictionResponse)
+        def predict_sales(request: SalesPredictionRequest):
+            # Replace this with actual logic for predicting sales
+            # For demonstration, we return a dummy prediction
+            predicted_amount = 100.0  # Dummy predicted amount
+            return SalesPredictionResponse(
+                predicted_amount=predicted_amount,
+                date=request.date,
+                store_id=request.store_id,
+                item_id=request.item_id
+            )
 
 # This allows the FastAPI app to be imported and run directly
 api = SalesAPI()

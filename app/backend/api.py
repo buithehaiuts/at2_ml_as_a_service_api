@@ -60,16 +60,20 @@ def validate_date(date_str: str) -> bool:
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
-    # Assuming the models are in the same directory as the FastAPI app
-    base_dir = Path(__file__).resolve().parent  # Get the directory of the current file
-    logger.info(f"Base Directory: {base_dir.resolve()}")
+    # Get the directory where this script is located
+    base_dir = Path(__file__).resolve().parent  # This points to the 'backend' directory
 
-    # Update paths to point directly to the model files
+    # Create the path to the "models" directory
+    models_dir = base_dir / 'models'  # This points to the 'models' directory
+
+    logger.info(f"Models Directory: {models_dir.resolve()}")
+
+    # Update paths to point to the model files located in the models directory
     model_files = {
-        'prophet': base_dir / 'prophet.pkl',
-        'prophet_event': base_dir / 'prophet_event.pkl',
-        'prophet_holiday': base_dir / 'prophet_holiday.pkl',
-        'prophet_month': base_dir / 'prophet_month.pkl'
+        'prophet': models_dir / 'prophet.pkl',
+        'prophet_event': models_dir / 'prophet_event.pkl',
+        'prophet_holiday': models_dir / 'prophet_holiday.pkl',
+        'prophet_month': models_dir / 'prophet_month.pkl'
     }
 
     for model_name, model_path in model_files.items():

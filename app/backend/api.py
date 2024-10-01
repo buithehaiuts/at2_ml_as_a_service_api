@@ -68,10 +68,10 @@ def validate_date(date_str: str) -> bool:
 async def startup_event():
     # Define model file paths using Path
     model_files = {
-        'prophet': '/model/prophet.pkl',
-        'prophet_event': '/model/prophet_event.pkl',
-        'prophet_holiday': '/model/prophet_holiday.pkl',
-        'prophet_month': '/model/prophet_month.pkl'
+        'prophet': './model/prophet.pkl',
+        'prophet_event': './model/prophet_event.pkl',
+        'prophet_holiday': './model/prophet_holiday.pkl',
+        'prophet_month': './model/prophet_month.pkl'
     }
     for model_name, model_path in model_files.items():
         logger.info(f"Attempting to load model from: {model_path}")  # Log the model loading path

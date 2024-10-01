@@ -9,7 +9,7 @@ import uvicorn
 import logging
 from datetime import datetime
 from pathlib import Path
-
+import prophet
 import os
 
 # Set up logging

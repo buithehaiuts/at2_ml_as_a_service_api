@@ -61,7 +61,7 @@ def validate_date(date_str: str) -> bool:
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
-    models_dir = Path(__file__).resolve().parent.parent / 'models'     # Path to the models directory
+    models_dir = Path(__file__).resolve().parent.parent.parent / 'models'     # Path to the models directory
     
     # Define model file paths using Path
     model_files = {

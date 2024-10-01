@@ -64,10 +64,10 @@ def validate_date(date_str: str) -> bool:
 async def startup_event():
     # Define model file paths using Path
     model_files = {
-        'prophet': Path(os.getcwd()) / 'models' / 'prophet.pkl',
-        'prophet_event': Path(os.getcwd()) / 'models' / 'prophet_event.pkl',
-        'prophet_holiday': Path(os.getcwd()) / 'models' / 'prophet_holiday.pkl',
-        'prophet_month': Path(os.getcwd()) / 'models' / 'prophet_month.pkl'
+        'prophet': / 'models' / 'prophet.pkl',
+        'prophet_event':/ 'models' / 'prophet_event.pkl',
+        'prophet_holiday': / 'models' / 'prophet_holiday.pkl',
+        'prophet_month': / 'models' / 'prophet_month.pkl'
     }
 
     for model_name, model_path in model_files.items():

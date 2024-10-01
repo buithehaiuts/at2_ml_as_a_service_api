@@ -14,7 +14,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.info(f"Current Working Directory: {os.getcwd()}")
-logger.info(f"Files in models directory: {os.listdir('models')}")
+logger.info(f"Files in models directory: {os.listdir('/models')}")
 
 
 # Define the models

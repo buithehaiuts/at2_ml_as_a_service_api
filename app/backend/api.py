@@ -52,7 +52,7 @@ models = {}
 async def startup_event():
     global models
     # Define the base path to the models folder
-    dataset_path = Path(__file__).resolve().parent.parent.parent / "models"
+    dataset_path = Path(__file__).resolve().parent.parent/ "models"
     
     # Print the resolved dataset path
     print(f"Resolved dataset path: {dataset_path}")

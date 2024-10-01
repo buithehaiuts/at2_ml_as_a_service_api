@@ -73,13 +73,9 @@ async def startup_event():
     }
 
     for model_path, filename in model_files.items():
-        if model_path.exists():
-            app.state.models[model_name] = load_model(model_name, model_path)
-            logger.info(f"{model_name} model loaded successfully.")
-        else:
-            logger.error(f"Model file {model_path} does not exist.")
-            app.state.models[model_name] = None  # Set to None if loading fails
-            
+        app.state.models[model_name] = load_model(model_name, model_path)
+        logger.info(f"{model_name} model loaded successfully.")
+
 @app.get("/")
 async def read_root():
     """Return a welcome message at the root endpoint and the project root path."""

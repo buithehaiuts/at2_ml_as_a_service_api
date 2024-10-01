@@ -66,14 +66,13 @@ async def startup_event():
     
     # List of model filenames
     model_files = {
-        'prophet': 'prophet.pkl',
-        'prophet_event': 'prophet_event.pkl',
-        'prophet_holiday': 'prophet_holiday.pkl',
-        'prophet_month': 'prophet_month.pkl'
+        'prophet': dataset_path/'prophet.pkl',
+        'prophet_event': dataset_path/'prophet_event.pkl',
+        'prophet_holiday': dataset_path'prophet_holiday.pkl',
+        'prophet_month': dataset_path/'prophet_month.pkl'
     }
 
     for model_name, filename in model_files.items():
-        model_path = dataset_path / filename 
         if model_path.exists():
             app.state.models[model_name] = load_model(model_name, model_path)
             logger.info(f"{model_name} model loaded successfully.")

@@ -8,6 +8,7 @@ from pathlib import Path
 import uvicorn
 import logging
 from datetime import datetime
+import models
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -60,14 +61,14 @@ def validate_date(date_str: str) -> bool:
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
-    models_dir = os.path.join('..', 'models')
+    models_dir = Path('models')  # Path to the models directory
     
-    # Update paths to point to the model files located in the models directory
+    # Define model file paths using Path
     model_files = {
-        'prophet': os.path.join(models_dir, 'prophet.pkl'),
-        'prophet_event': os.path.join(models_dir, 'prophet_event.pkl'),
-        'prophet_holiday': os.path.join(models_dir, 'prophet_holiday.pkl'),
-        'prophet_month':os.path.join(models_dir, 'prophet_month.pkl')
+        'prophet': models_dir / 'prophet.pkl',
+        'prophet_event': models_dir / 'prophet_event.pkl',
+        'prophet_holiday': models_dir / 'prophet_holiday.pkl',
+        'prophet_month': models_dir / 'prophet_month.pkl'
     }
 
     for model_name, model_path in model_files.items():
@@ -75,7 +76,7 @@ async def startup_event():
         if app.state.models[model_name] is not None:
             logger.info(f"{model_name} model loaded successfully.")
         else:
-            logger.warning(f"Failed to load {model_name} model.")
+            logger.warning(f"Failed to load {model_name} model from {model_path}.")
 
 @app.get("/")
 async def read_root():

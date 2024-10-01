@@ -66,10 +66,10 @@ async def startup_event():
     
     # List of model filenames
     model_files = {
-        'prophet': dataset_path/'prophet.pkl',
-        'prophet_event': dataset_path/'prophet_event.pkl',
-        'prophet_holiday': dataset_path/'prophet_holiday.pkl',
-        'prophet_month': dataset_path/'prophet_month.pkl'
+        'prophet': dataset_path / 'prophet.pkl',
+        'prophet_event': dataset_path / 'prophet_event.pkl',
+        'prophet_holiday': dataset_path / 'prophet_holiday.pkl',
+        'prophet_month': dataset_path / 'prophet_month.pkl'
     }
 
     for model_path, filename in model_files.items():

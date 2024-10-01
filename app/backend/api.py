@@ -60,7 +60,7 @@ def validate_date(date_str: str) -> bool:
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
-    models_dir = os.path.join('models')
+    models_dir = os.path.join('..', 'models')
     
     # Update paths to point to the model files located in the models directory
     model_files = {

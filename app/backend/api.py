@@ -41,6 +41,7 @@ app.state.models = {}
 
 def load_model(model_path: str):
     """Load a prediction model from a file."""
+    model_path = Path(model_path).resolve()
     try:
         with open(model_path, 'rb') as f:  # Open the file in binary read mode
             model = pickle.load(f)

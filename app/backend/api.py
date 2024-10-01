@@ -86,9 +86,11 @@ async def startup_event():
 @app.get("/")
 async def read_root():
     """Return a welcome message at the root endpoint."""
-    return {"message": "Welcome to the Sales Forecast API!"}
-    root = Path(os.getcwd()).parent.parent
-    print(str(root))
+    root = Path(os.getcwd()).parent.parent  # Get the root path
+    return {
+        "message": "Welcome to the Sales Forecast API!",
+        "root": str(root)  # Include the root path in the response
+    }
 
 # Health check endpoint
 @app.get(

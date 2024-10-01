@@ -51,11 +51,12 @@ models = {}
 @app.on_event("startup")
 async def startup_event():
     global models
-    # Define the base path to the models folder
-    dataset_path = Path(__file__).resolve().parent.parent/ "models"
+
+    # Get the root path by going three levels up
+    root = Path(os.getcwd()).parent.parent.parent
     
-    # Print the resolved dataset path
-    print(f"Resolved dataset path: {dataset_path}")
+    # Use os.path.join to create the path to the "models" directory
+    dataset_path = os.path.join(root, "models")
 
     # List of model filenames
     model_files = {

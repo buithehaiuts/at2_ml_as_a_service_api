@@ -58,6 +58,10 @@ def validate_date(date_str: str) -> bool:
     except ValueError:
         return False
 
+def get_model_path(model_name: str) -> Path:
+    """Constructs the path to the model based on the model name."""
+    return Path(__file__).parent.parent.parent / 'models' / model_name
+
 # On startup, load all models
 @app.on_event("startup")
 async def startup_event():
@@ -70,12 +74,16 @@ async def startup_event():
     }
 
     for model_name, model_path in model_files.items():
-        logger.info(f"Loading model from: {model_path}")  # Log the model loading path
-        app.state.models[model_name] = load_model(model_path)
-        if app.state.models[model_name] is not None:
-            logger.info(f"{model_name} model loaded successfully.")
+        logger.info(f"Attempting to load model from: {model_path}")  # Log the model loading path
+        
+        if model_path.exists():  # Check if the model file exists
+            try:
+                app.state.models[model_name] = load_model(str(model_path))  # Ensure the path is a string
+                logger.info(f"{model_name} model loaded successfully.")
+            except Exception as e:
+                logger.error(f"Error loading {model_name} model from {model_path}: {str(e)}")
         else:
-            logger.warning(f"Failed to load {model_name} model from {model_path}.")
+            logger.warning(f"Model file does not exist: {model_path}")
 
 @app.get("/")
 async def read_root():

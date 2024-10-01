@@ -55,9 +55,8 @@ async def startup_event():
 
     # Get the root path by going two levels up
     root = Path(os.getcwd()).parent.parent
-    
     # Use os.path.join to create the path to the "models" directory
-    dataset_path = Path(root) / "models"  # Convert to Path object
+    dataset_path = root / "models"  # Convert to Path object
 
     # List of model filenames
     model_files = {

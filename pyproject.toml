@@ -7,21 +7,21 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.11"
-black = "^23.3.0"  # Adjust this version if needed
-flake8 = "^5.0"    # Adjust this version if needed
-isort = "^5.0"     # Adjust this version if needed
-loguru = "^0.6.0"  # Adjust this version if needed
+black = "^23.3.0"
+flake8 = "^5.0"    
+isort = "^5.0"     
+loguru = "^0.6.0"  
 mkdocs = "^1.6.1"
-python-dotenv = "^0.21.0"  # Corrected to the right package name
+python-dotenv = "^0.21.0"  
 tqdm = "^4.66.5"
 typer = "^0.12.5"
-fastapi = "^0.102.0"        # Add FastAPI with an appropriate version
-streamlit = "1.36.0"       # Specified version for Streamlit
-pandas = "2.2.2"            # Specified version for Pandas
-scikit-learn = "1.5.1"      # Specified version for Scikit-Learn
-uvicorn = "^0.21.1"         # Add Uvicorn with an appropriate version
-prophet = "1.1.1"           # Specified version for Prophet
-numpy = "1.23.5"            # Specified version for NumPy
+fastapi = "^0.102.0"        
+streamlit = "1.36.0"       
+pandas = "2.2.2"           
+scikit-learn = "1.5.1"     
+uvicorn = "^0.21.1"        
+prophet = "1.1.1"           
+numpy = "1.23.5"           
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

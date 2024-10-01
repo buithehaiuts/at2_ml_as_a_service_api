@@ -48,6 +48,9 @@ async def startup_event():
     # Define the base path to the models folder
     dataset_path = Path(__file__).resolve().parent.parent.parent / "models"
     
+    # Add this to the startup event
+    print(f"Resolved dataset path: {dataset_path}")
+
     # Load the models from the 'models' directory using Path objects
     models['prophet'] = load_model('prophet', dataset_path / 'prophet.pkl')
     models['prophet_event'] = load_model('prophet_event', dataset_path / 'prophet_event.pkl')

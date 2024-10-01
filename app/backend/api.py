@@ -60,20 +60,16 @@ def validate_date(date_str: str) -> bool:
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
-    # # Get the directory where this script is located
-    # base_dir = Path(__file__).resolve().parent  # This points to the 'backend' directory
-
-    # Create the path to the "models" directory
-    models_dir = Path("/models")  # This points to the 'models' directory
+    models_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models')
 
     logger.info(f"Models Directory: {models_dir.resolve()}")
 
     # Update paths to point to the model files located in the models directory
     model_files = {
-        'prophet': models_dir / 'prophet.pkl',
-        'prophet_event': models_dir / 'prophet_event.pkl',
-        'prophet_holiday': models_dir / 'prophet_holiday.pkl',
-        'prophet_month': models_dir / 'prophet_month.pkl'
+        'prophet': os.path.join(models_dir, 'prophet.pkl'),
+        'prophet_event': os.path.join(models_dir, 'prophet_event.pkl'),
+        'prophet_holiday': os.path.join(models_dir, 'prophet_holiday.pkl'),
+        'prophet_month':os.path.join(models_dir, 'prophet_month.pkl')
     }
 
     for model_name, model_path in model_files.items():

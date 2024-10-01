@@ -52,8 +52,8 @@ models = {}
 async def startup_event():
     global models
 
-    # Get the root path by going three levels up
-    root = Path(os.getcwd()).parent.parent.parent
+    # Get the root path by going two levels up
+    root = Path(os.getcwd()).parent.parent
     
     # Use os.path.join to create the path to the "models" directory
     dataset_path = os.path.join(root, "models")

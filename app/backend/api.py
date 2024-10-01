@@ -6,6 +6,7 @@ import pandas as pd
 import os  
 from pathlib import Path
 import uvicorn
+import pickle
 
 # Define the models
 class HealthCheck(BaseModel):
@@ -56,7 +57,7 @@ async def startup_event():
     root = Path(os.getcwd()).parent.parent
     
     # Use os.path.join to create the path to the "models" directory
-    dataset_path = os.path.join(root, "models")
+    dataset_path = Path(root) / "models"  # Convert to Path object
 
     # List of model filenames
     model_files = {

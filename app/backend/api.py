@@ -60,15 +60,13 @@ def validate_date(date_str: str) -> bool:
 # On startup, load all models
 @app.on_event("startup")
 async def startup_event():
-    """Load models on startup."""
-    models_dir = Path(__file__).resolve().parent.parent.parent / 'models'     # Path to the models directory
-    
+
     # Define model file paths using Path
     model_files = {
-        'prophet': models_dir / 'prophet.pkl',
-        'prophet_event': models_dir / 'prophet_event.pkl',
-        'prophet_holiday': models_dir / 'prophet_holiday.pkl',
-        'prophet_month': models_dir / 'prophet_month.pkl'
+        'prophet': '../models/prophet.pkl',
+        'prophet_event': '../models/prophet_event.pkl',
+        'prophet_holiday': '../models/prophet_holiday.pkl',
+        'prophet_month': '../models/prophet_month.pkl'
     }
 
     for model_name, model_path in model_files.items():

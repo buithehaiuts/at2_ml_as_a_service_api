@@ -63,10 +63,10 @@ def validate_date(date_str: str) -> bool:
 async def startup_event():
     # Define model file paths using Path
     model_files = {
-        'prophet': str(Path(__file__).parent.parent.parent / 'models' / 'prophet.pkl'),
-        'prophet_event': str(Path(__file__).parent.parent.parent / 'models' / 'prophet_event.pkl'),
-        'prophet_holiday': str(Path(__file__).parent.parent.parent / 'models' / 'prophet_holiday.pkl'),
-        'prophet_month': str(Path(__file__).parent.parent.parent / 'models' / 'prophet_month.pkl')
+        'prophet': Path(__file__).parent.parent.parent / 'models' / 'prophet.pkl',
+        'prophet_event': Path(__file__).parent.parent.parent / 'models' / 'prophet_event.pkl',
+        'prophet_holiday': Path(__file__).parent.parent.parent / 'models' / 'prophet_holiday.pkl',
+        'prophet_month': Path(__file__).parent.parent.parent / 'models' / 'prophet_month.pkl'
     }
 
     for model_name, model_path in model_files.items():

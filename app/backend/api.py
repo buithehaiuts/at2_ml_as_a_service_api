@@ -36,21 +36,23 @@ def load_model(model_name: str, model_path: str):
     """Load a prediction model from a file."""
     try:
         model = joblib.load(model_path)
-        print(f"Model '{model_name}' loaded successfully from {model_path}")
         return model
     except Exception as e:
-        print(f"Error loading model '{model_name}': {e}")
+        print(f"Error loading {model_name}: {str(e)}")
         return None
 
 # On startup, load all models
 @app.on_event("startup")
 async def startup_event():
     global models
-    dataset_path =  "models"
-    models['prophet'] = load_model('prophet', os.path.join(dataset_path, 'prophet.pkl'))
-    models['prophet_event'] = load_model('prophet_event', os.path.join(dataset_path, 'prophet_event.pkl'))
-    models['prophet_holiday'] = load_model('prophet_holiday', os.path.join(dataset_path, 'prophet_holiday.pkl'))
-    models['prophet_month'] = load_model('prophet_month', os.path.join(dataset_path, 'prophet_month.pkl'))
+    # Define the base path to the models folder
+    dataset_path = Path(__file__).resolve().parent.parent.parent / "models"
+    
+    # Load the models from the 'models' directory using Path objects
+    models['prophet'] = load_model('prophet', dataset_path / 'prophet.pkl')
+    models['prophet_event'] = load_model('prophet_event', dataset_path / 'prophet_event.pkl')
+    models['prophet_holiday'] = load_model('prophet_holiday', dataset_path / 'prophet_holiday.pkl')
+    models['prophet_month'] = load_model('prophet_month', dataset_path / 'prophet_month.pkl')
 
     # Check if all models are loaded correctly
     for model_name, model in models.items():

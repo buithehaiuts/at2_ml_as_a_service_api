@@ -14,7 +14,20 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.info(f"Current Working Directory: {os.getcwd()}")
-logger.info(f"Files in models directory: {os.listdir('/models')}")
+
+# Get the current working directory
+current_directory = Path(os.getcwd())
+models_dir = current_directory.parent / 'models'  # Construct the models directory path
+
+# Log the path to the models directory
+logger.info(f"Models Directory Path: {models_dir}")
+
+# List the files in the models directory and log them
+if models_dir.exists():
+    logger.info(f"Files in models directory: {os.listdir(models_dir)}")  # List files in the models directory
+else:
+    logger.warning(f"Models directory does not exist: {models_dir}")
+
 
 
 # Define the models

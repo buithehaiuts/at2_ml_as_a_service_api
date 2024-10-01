@@ -8,6 +8,7 @@ from pathlib import Path
 import uvicorn
 import logging
 from datetime import datetime
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +61,7 @@ def validate_date(date_str: str) -> bool:
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
-    models_dir = Path(os.path.join(os.path.dirname(__file__), '../models'))    # Path to the models directory
+    models_dir = Path(__file__).resolve().parent.parent / 'models'     # Path to the models directory
     
     # Define model file paths using Path
     model_files = {

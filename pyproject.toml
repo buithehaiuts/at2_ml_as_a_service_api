@@ -1,32 +1,28 @@
-[build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
-
-[project]
-name = "at2_ml_as_a_service_api"
-version = "0.0.1"
-description = "A short description of the project."
-authors = [
-  { name = "thehaibui" },
-]
-
+[tool.poetry]
+name = "at2-ml-as-a-service-api"
+version = "0.1.0"
+description = ""
+authors = ["thehaibui"]
 readme = "README.md"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    
-]
-requires-python = "~=3.11"
 
-[tool.black]
-line-length = 99
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.venv
-)/
-'''
+[tool.poetry.dependencies]
+python = "3.11"
+black = "^23.3.0"  # Adjust this version if needed
+flake8 = "^5.0"    # Adjust this version if needed
+isort = "^5.0"     # Adjust this version if needed
+loguru = "^0.6.0"  # Adjust this version if needed
+mkdocs = "^1.6.1"
+python-dotenv = "^0.21.0"  # Corrected to the right package name
+tqdm = "^4.66.5"
+typer = "^0.12.5"
+fastapi = "^0.102.0"        # Add FastAPI with an appropriate version
+streamlit = "1.36.0"       # Specified version for Streamlit
+pandas = "2.2.2"            # Specified version for Pandas
+scikit-learn = "1.5.1"      # Specified version for Scikit-Learn
+uvicorn = "^0.21.1"         # Add Uvicorn with an appropriate version
+prophet = "1.1.1"           # Specified version for Prophet
+numpy = "1.23.5"            # Specified version for NumPy
 
-[tool.ruff.lint.isort]
-known_first_party = ["at2_ml_as_a_service_api"]
-force_sort_within_sections = true
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

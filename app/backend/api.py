@@ -61,16 +61,16 @@ def validate_date(date_str: str) -> bool:
 # On startup, load all models
 @app.on_event("startup")
 async def startup_event():
-
     # Define model file paths using Path
     model_files = {
-        'prophet': '../../models/prophet.pkl',
-        'prophet_event': '../../models/prophet_event.pkl',
-        'prophet_holiday': '../../models/prophet_holiday.pkl',
-        'prophet_month': '../../models/prophet_month.pkl'
+        'prophet': str(Path(__file__).parent.parent / 'models' / 'prophet.pkl'),
+        'prophet_event': str(Path(__file__).parent.parent / 'models' / 'prophet_event.pkl'),
+        'prophet_holiday': str(Path(__file__).parent.parent / 'models' / 'prophet_holiday.pkl'),
+        'prophet_month': str(Path(__file__).parent.parent / 'models' / 'prophet_month.pkl')
     }
 
     for model_name, model_path in model_files.items():
+        logger.info(f"Loading model from: {model_path}")  # Log the model loading path
         app.state.models[model_name] = load_model(model_path)
         if app.state.models[model_name] is not None:
             logger.info(f"{model_name} model loaded successfully.")

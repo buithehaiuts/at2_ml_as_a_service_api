@@ -35,11 +35,17 @@ models = {}
 def load_model(model_name: str, model_path: str):
     """Load a prediction model from a file."""
     try:
-        model = joblib.load(model_path)
+        model = pickle.load(model_path)
         return model
     except Exception as e:
         print(f"Error loading {model_name}: {str(e)}")
         return None
+
+# On startup, load all models
+from pathlib import Path
+import os
+
+models = {}
 
 # On startup, load all models
 @app.on_event("startup")
@@ -48,20 +54,32 @@ async def startup_event():
     # Define the base path to the models folder
     dataset_path = Path(__file__).resolve().parent.parent.parent / "models"
     
-    # Add this to the startup event
+    # Print the resolved dataset path
     print(f"Resolved dataset path: {dataset_path}")
 
+    # List of model filenames
+    model_files = {
+        'prophet': 'prophet.pkl',
+        'prophet_event': 'prophet_event.pkl',
+        'prophet_holiday': 'prophet_holiday.pkl',
+        'prophet_month': 'prophet_month.pkl'
+    }
+
     # Load the models from the 'models' directory using Path objects
-    models['prophet'] = load_model('prophet', dataset_path / 'prophet.pkl')
-    models['prophet_event'] = load_model('prophet_event', dataset_path / 'prophet_event.pkl')
-    models['prophet_holiday'] = load_model('prophet_holiday', dataset_path / 'prophet_holiday.pkl')
-    models['prophet_month'] = load_model('prophet_month', dataset_path / 'prophet_month.pkl')
+    for model_name, filename in model_files.items():
+        model_path = dataset_path / filename
+        if os.path.exists(model_path):
+            models[model_name] = load_model(model_name, model_path)
+            print(f"{model_name} model loaded successfully.")
+        else:
+            print(f"Error: Model file {model_path} does not exist.")
+            models[model_name] = None  # Set to None if loading fails
 
     # Check if all models are loaded correctly
     for model_name, model in models.items():
         if model is None:
             print(f"Warning: {model_name} model failed to load.")
-
+            
 # Root endpoint for basic info
 @app.get("/")
 async def read_root():

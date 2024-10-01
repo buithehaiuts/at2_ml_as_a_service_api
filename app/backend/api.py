@@ -82,14 +82,23 @@ async def startup_event():
         if model is None:
             print(f"Warning: {model_name} model failed to load.")
             
-# Root endpoint for basic info
 @app.get("/")
 async def read_root():
-    """Return a welcome message at the root endpoint."""
-    root = Path(os.getcwd()).parent.parent  # Get the root path
+    """Return a welcome message at the root endpoint and the project root path."""
+    
+    # Get the current working directory
+    current_directory = Path(os.getcwd())
+    print(f"Current Working Directory: {current_directory}")
+
+    # Navigate to the project root (two levels up)
+    root = current_directory.parent.parent
+    
+    # Print the resolved root path for debugging
+    print(f"Resolved Root Path: {root}")
+
     return {
         "message": "Welcome to the Sales Forecast API!",
-        "root": str(root)  # Include the root path in the response
+        "root": str(root)  # Convert Path to string for the response
     }
 
 # Health check endpoint

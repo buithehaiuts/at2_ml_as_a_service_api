@@ -51,17 +51,14 @@ models = {}
 # On startup, load all models
 @app.on_event("startup")
 async def startup_event():
-    global models
-
-    # Get the root path by going two levels up
-    # root = Path(os.getcwd()).parent.parent
-
-    # Get the root directory (two levels up)
-    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+    """Load models on startup."""
+    app.state.models = {}
+    # Get the root directory (two levels up) and ensure it is a Path object
+    root = Path(__file__).resolve().parents[2]  # Now root is a Path object
     
-    # Use os.path.join to create the path to the "models" directory
-    dataset_path = root / "models"  # Convert to Path object
-
+    # Use / to create the path to the "models" directory
+    dataset_path = root / "models"
+    
     # List of model filenames
     model_files = {
         'prophet': 'prophet.pkl',
@@ -70,20 +67,14 @@ async def startup_event():
         'prophet_month': 'prophet_month.pkl'
     }
 
-    # Load the models from the 'models' directory using Path objects
     for model_name, filename in model_files.items():
-        model_path = dataset_path / filename
-        if os.path.exists(model_path):
-            models[model_name] = load_model(model_name, model_path)
-            print(f"{model_name} model loaded successfully.")
+        model_path = dataset_path / filename 
+        if model_path.exists():
+            app.state.models[model_name] = load_model(model_name, model_path)
+            logger.info(f"{model_name} model loaded successfully.")
         else:
-            print(f"Error: Model file {model_path} does not exist.")
-            models[model_name] = None  # Set to None if loading fails
-
-    # Check if all models are loaded correctly
-    for model_name, model in models.items():
-        if model is None:
-            print(f"Warning: {model_name} model failed to load.")
+            logger.error(f"Model file {model_path} does not exist.")
+            app.state.models[model_name] = None  # Set to None if loading fails
             
 @app.get("/")
 async def read_root():

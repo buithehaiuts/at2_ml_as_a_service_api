@@ -8,6 +8,8 @@ from pathlib import Path
 import uvicorn
 import pickle
 import logging
+from pathlib import Path
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -49,19 +51,13 @@ def load_model(model_name: str, model_path: str):
         return None
 
 # On startup, load all models
-from pathlib import Path
-import os
-
-models = {}
-
-# On startup, load all models
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
     app.state.models = {}
 
     # Create the path to the "models" directory
-    dataset_path = "models"
+    dataset_path = Path("models")
     
     # List of model filenames
     model_files = {

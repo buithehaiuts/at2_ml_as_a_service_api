@@ -63,7 +63,7 @@ async def startup_event():
     root = Path(__file__).resolve().parents[2]  # Now root is a Path object
     
     # Use / to create the path to the "models" directory
-    dataset_path = root / "models"
+    dataset_path = "models"
     
     # List of model filenames
     model_files = {

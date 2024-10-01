@@ -8,8 +8,6 @@ from pathlib import Path
 import uvicorn
 import pickle
 import logging
-from pathlib import Path
-import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

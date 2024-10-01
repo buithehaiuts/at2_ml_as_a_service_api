@@ -7,6 +7,11 @@ import os
 from pathlib import Path
 import uvicorn
 import pickle
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Define the models
 class HealthCheck(BaseModel):

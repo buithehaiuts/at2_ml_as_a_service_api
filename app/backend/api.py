@@ -61,9 +61,7 @@ def validate_date(date_str: str) -> bool:
 async def startup_event():
     """Load models on startup."""
     models_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models')
-
-    logger.info(f"Models Directory: {models_dir.resolve()}")
-
+    
     # Update paths to point to the model files located in the models directory
     model_files = {
         'prophet': os.path.join(models_dir, 'prophet.pkl'),
@@ -73,7 +71,6 @@ async def startup_event():
     }
 
     for model_name, model_path in model_files.items():
-        logger.info(f"Attempting to load model from: {model_path.resolve()}")
         app.state.models[model_name] = load_model(model_path)
         if app.state.models[model_name] is not None:
             logger.info(f"{model_name} model loaded successfully.")

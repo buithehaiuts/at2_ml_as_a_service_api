@@ -62,10 +62,10 @@ async def startup_event():
     """Load models on startup."""
     # Create the path to the "models" directory
     model_files = {
-        'prophet': '/models/prophet.pkl',
-        'prophet_event': '/models/prophet_event.pkl',
-        'prophet_holiday': '/models/prophet_holiday.pkl',
-        'prophet_month': '/models/prophet_month.pkl'
+        'prophet': 'models/prophet.pkl',
+        'prophet_event': 'models/prophet_event.pkl',
+        'prophet_holiday': 'models/prophet_holiday.pkl',
+        'prophet_month': 'models/prophet_month.pkl'
     }
 
     for model_name, model_path in model_files.items():

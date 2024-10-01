@@ -60,11 +60,11 @@ def validate_date(date_str: str) -> bool:
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
-    # Get the directory where this script is located
-    base_dir = Path(__file__).resolve().parent  # This points to the 'backend' directory
+    # # Get the directory where this script is located
+    # base_dir = Path(__file__).resolve().parent  # This points to the 'backend' directory
 
     # Create the path to the "models" directory
-    models_dir = base_dir / 'models'  # This points to the 'models' directory
+    models_dir = Path("/models")  # This points to the 'models' directory
 
     logger.info(f"Models Directory: {models_dir.resolve()}")
 

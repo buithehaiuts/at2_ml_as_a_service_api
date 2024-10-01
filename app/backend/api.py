@@ -8,9 +8,6 @@ from pathlib import Path
 import uvicorn
 import logging
 from datetime import datetime
-from pathlib import Path
-import prophet
-import os
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -62,7 +59,6 @@ def validate_date(date_str: str) -> bool:
     except ValueError:
         return False
 
-
 # On startup, load all models
 @app.on_event("startup")
 async def startup_event():
@@ -90,10 +86,8 @@ async def startup_event():
 @app.get("/")
 async def read_root():
     """Return a welcome message at the root endpoint and the project root path."""
-    # Get the current working directory
-    current_directory = Path(os.getcwd())
     logger.info(f"Current Working Directory: {current_directory}")
-
+    
     # Navigate to the project root (two levels up)
     root = current_directory.parent.parent
     
@@ -133,13 +127,13 @@ def predict(model, input: pd.DataFrame) -> List[Dict[str, Any]]:
 # Endpoint for national sales forecast (uses query parameters)
 @app.get("/v1/sales/national/")
 async def national_sales_forecast(
-    date: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
+    ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
     item_id: str = Query(..., description="Item ID for the product"),
     store_id: str = Query(..., description="Store ID for the store"),
     model_type: str = Query('prophet', description="Model type (default: prophet)")
 ):
     """Get national sales forecast using the specified model."""
-    if not validate_date(date):
+    if not validate_date(ds):  # Corrected the variable name from 'date' to 'ds'
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
     if model_type not in app.state.models:
@@ -147,7 +141,7 @@ async def national_sales_forecast(
 
     # Prepare input for prediction
     forecast_input = pd.DataFrame({
-        'date': [date],
+        'ds': [ds],
         'item_id': [item_id],
         'store_id': [store_id]
     })
@@ -158,13 +152,13 @@ async def national_sales_forecast(
 # Endpoint for predicting sales based on store and item (POST request for input data)
 @app.post("/v1/sales/stores/items/")
 async def predict_sales(
-    date: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
+    ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
     item_id: str = Query(..., description="Item ID for the product"),
     store_id: str = Query(..., description="Store ID for the store"),
     model_type: str = Query('prophet', description="Model type (default: prophet)")
 ):
     """Predict sales based on store and item using a POST request."""
-    if not validate_date(date):
+    if not validate_date(ds):  # Ensure correct date validation
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
     if model_type not in app.state.models:
@@ -172,7 +166,7 @@ async def predict_sales(
     
     # Prepare input for prediction
     predictive_input = pd.DataFrame({
-        'date': [date],
+        'ds': [ds],
         'item_id': [item_id],
         'store_id': [store_id]
     })
@@ -185,4 +179,3 @@ if __name__ == "__main__":
     # Configure the port and host dynamically
     port = int(os.getenv("PORT", 8000))  # Get the port from environment variables or default to 8000
     uvicorn.run(app, host="0.0.0.0", port=port)
-

@@ -9,6 +9,7 @@ import uvicorn
 import pickle
 import logging
 from datetime import datetime
+from app import models
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

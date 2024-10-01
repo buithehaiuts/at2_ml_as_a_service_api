@@ -59,10 +59,8 @@ models = {}
 async def startup_event():
     """Load models on startup."""
     app.state.models = {}
-    # Get the root directory (two levels up) and ensure it is a Path object
-    root = Path(__file__).resolve().parents[2]  # Now root is a Path object
-    
-    # Use / to create the path to the "models" directory
+
+    # Create the path to the "models" directory
     dataset_path = "models"
     
     # List of model filenames

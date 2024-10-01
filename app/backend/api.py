@@ -41,10 +41,11 @@ models = {}
 def load_model(model_name: str, model_path: str):
     """Load a prediction model from a file."""
     try:
-        model = pickle.load(model_path)
+        with open(model_path, 'rb') as f:  # Open the file in binary read mode
+            model = pickle.load(f)
         return model
     except Exception as e:
-        print(f"Error loading {model_name}: {str(e)}")
+        logger.error(f"Error loading {model_name}: {str(e)}")
         return None
 
 # On startup, load all models

@@ -8,6 +8,7 @@ from pathlib import Path
 import uvicorn
 import pickle
 import logging
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +48,14 @@ def load_model(model_name: str, model_path: str):
     except Exception as e:
         logger.error(f"Error loading {model_name}: {str(e)}")
         return None
+
+def validate_date(date_str: str) -> bool:
+    """Validate the date format to ensure it follows YYYY-MM-DD."""
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
 
 # On startup, load all models
 @app.on_event("startup")
@@ -122,6 +131,9 @@ async def national_sales_forecast(
     model_type: str = Query('prophet', description="Model type (default: prophet)")
 ):
     """Get national sales forecast using the specified model."""
+    if not validate_date(date):
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
     if model_type not in models:
         raise HTTPException(status_code=404, detail=f"Model '{model_type}' not found.")
 
@@ -144,6 +156,9 @@ async def predict_sales(
     model_type: str = Query('prophet', description="Model type (default: prophet)")
 ):
     """Predict sales based on store and item using a POST request."""
+    if not validate_date(date):
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
     if model_type not in models:
         raise HTTPException(status_code=404, detail=f"Model '{model_type}' not found.")
     

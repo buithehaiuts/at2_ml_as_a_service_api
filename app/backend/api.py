@@ -10,24 +10,23 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+
+# Set up logging
 logger = logging.getLogger(__name__)
-logger.info(f"Current Working Directory: {os.getcwd()}")
 
 # Get the current working directory
 current_directory = Path(os.getcwd())
-models_dir = current_directory.parent / 'models'  # Construct the models directory path
+logger.info(f"Current Working Directory: {current_directory.resolve()}")  # Log absolute path
 
-# Log the path to the models directory
-logger.info(f"Models Directory Path: {models_dir}")
+# Construct the path to the models directory
+models_dir = current_directory.parent / 'models'  # Assuming 'models' is at the same level as 'app'
+logger.info(f"Models Directory Path: {models_dir.resolve()}")  # Log absolute path
 
-# List the files in the models directory and log them
+# Check if the models directory exists and log its contents
 if models_dir.exists():
-    logger.info(f"Files in models directory: {os.listdir(models_dir)}")  # List files in the models directory
+    logger.info(f"Files in models directory: {os.listdir(models_dir)}")
 else:
-    logger.warning(f"Models directory does not exist: {models_dir}")
-
+    logger.warning(f"Models directory does not exist: {models_dir.resolve()}")
 
 
 # Define the models

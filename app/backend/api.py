@@ -1,15 +1,13 @@
 from fastapi import FastAPI, HTTPException, Query, status
 from pydantic import BaseModel
 from typing import List, Dict, Any
-import joblib  
+import pickle  
 import pandas as pd  
 import os  
 from pathlib import Path
 import uvicorn
-import pickle
 import logging
 from datetime import datetime
-from app import models
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,16 +36,16 @@ app = FastAPI(
 )
 
 # Load models into a centralized dictionary
-models = {}
+app.state.models = {}
 
-def load_model(model_name: str, model_path: str):
+def load_model(model_path: str):
     """Load a prediction model from a file."""
     try:
         with open(model_path, 'rb') as f:  # Open the file in binary read mode
             model = pickle.load(f)
         return model
     except Exception as e:
-        logger.error(f"Error loading {model_name}: {str(e)}")
+        logger.error(f"Error loading model from {model_path}: {str(e)}")
         return None
 
 def validate_date(date_str: str) -> bool:
@@ -62,12 +60,7 @@ def validate_date(date_str: str) -> bool:
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup."""
-    app.state.models = {}
-
     # Create the path to the "models" directory
-    dataset_path = Path("models")
-    
-    # List of model filenames
     model_files = {
         'prophet': 'models/prophet.pkl',
         'prophet_event': 'models/prophet_event.pkl',
@@ -76,22 +69,24 @@ async def startup_event():
     }
 
     for model_name, model_path in model_files.items():
-        app.state.models[model_name] = load_model(model_name, model_path)
-        logger.info(f"{model_name} model loaded successfully.")
+        app.state.models[model_name] = load_model(model_path)
+        if app.state.models[model_name] is not None:
+            logger.info(f"{model_name} model loaded successfully.")
+        else:
+            logger.warning(f"Failed to load {model_name} model.")
 
 @app.get("/")
 async def read_root():
     """Return a welcome message at the root endpoint and the project root path."""
-    
     # Get the current working directory
     current_directory = Path(os.getcwd())
-    print(f"Current Working Directory: {current_directory}")
+    logger.info(f"Current Working Directory: {current_directory}")
 
     # Navigate to the project root (two levels up)
     root = current_directory.parent.parent
     
     # Print the resolved root path for debugging
-    print(f"Resolved Root Path: {root}")
+    logger.info(f"Resolved Root Path: {root}")
 
     return {
         "message": "Welcome to the Sales Forecast API!",
@@ -135,7 +130,7 @@ async def national_sales_forecast(
     if not validate_date(date):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
-    if model_type not in models:
+    if model_type not in app.state.models:
         raise HTTPException(status_code=404, detail=f"Model '{model_type}' not found.")
 
     # Prepare input for prediction
@@ -145,7 +140,7 @@ async def national_sales_forecast(
         'store_id': [store_id]
     })
 
-    pred = predict(models[model_type], forecast_input)
+    pred = predict(app.state.models[model_type], forecast_input)
     return {"model": model_type, "prediction": pred}
 
 # Endpoint for predicting sales based on store and item (POST request for input data)
@@ -160,7 +155,7 @@ async def predict_sales(
     if not validate_date(date):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
-    if model_type not in models:
+    if model_type not in app.state.models:
         raise HTTPException(status_code=404, detail=f"Model '{model_type}' not found.")
     
     # Prepare input for prediction
@@ -170,7 +165,7 @@ async def predict_sales(
         'store_id': [store_id]
     })
 
-    pred = predict(models[model_type], predictive_input)
+    pred = predict(app.state.models[model_type], predictive_input)
     return {"model": model_type, "prediction": pred}
 
 # Run the application if executed directly

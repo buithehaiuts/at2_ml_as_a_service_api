@@ -175,6 +175,7 @@
 
 from fastapi import FastAPI
 from pathlib import Path
+import pickle
 import logging
 
 # Configure logging
@@ -188,13 +189,28 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# On startup, load all models
+# Function to load model
+def load_model(model_name: str, model_path: Path):
+    """Load a prediction model from a file if it exists."""
+    if model_path.exists():
+        try:
+            with open(model_path, 'rb') as f:
+                model = pickle.load(f)
+            logger.info(f"{model_name} model loaded successfully.")
+            return model
+        except Exception as e:
+            logger.error(f"Error loading {model_name}: {e}")
+            return None
+    else:
+        logger.error(f"{model_name} model path does not exist: {model_path}")
+        return None
+
+# On startup, check and load models
 @app.on_event("startup")
 async def startup_event():
-    """Print model file paths on startup."""
-    # Get the root directory (two levels up from this file)
-    root = Path(__file__).resolve().parents[2]
-
+    """Check if model files exist and load them."""
+    root = Path(__file__).resolve().parents[2]  # Adjust if necessary
+    
     # Define the paths for the model files
     model_files = {
         'prophet': root / 'models' / 'prophet.pkl',
@@ -203,8 +219,16 @@ async def startup_event():
         'prophet_month': root / 'models' / 'prophet_month.pkl'
     }
 
-    # Print model files for debugging
-    print(f"Model files: {model_files}")
+    # Print and check whether the paths exist
+    app.state.models = {}
+    for model_name, model_path in model_files.items():
+        if model_path.exists():
+            logger.info(f"{model_name} model found at {model_path}")
+            model = load_model(model_name, model_path)
+            if model:
+                app.state.models[model_name] = model
+        else:
+            logger.error(f"{model_name} model NOT found at {model_path}")
 
 # Running the FastAPI app
 if __name__ == "__main__":

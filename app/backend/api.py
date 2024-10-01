@@ -76,6 +76,8 @@ async def startup_event():
     for model_name, model_path in model_files.items():
         logger.info(f"Attempting to load model from: {model_path}")  # Log the model loading path
         
+        model_path = Path(model_path).resolve()
+        
         if model_path.exists():  # Check if the model file exists
             try:
                 app.state.models[model_name] = load_model(str(model_path))  # Ensure the path is a string

@@ -114,13 +114,14 @@ async def health_check():
     return HealthCheck(status="healthy")
 
 # Prediction function
-def predict(model, input: pd.DataFrame) -> List[Dict[str, Any]]:
+def predict(model,period=7, input: pd.DataFrame) -> List[Dict[str, Any]]:
     """Make a prediction using the selected model."""
     if model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     try:
-        predictions = model.predict(input)
+        future = model.make_future_dataframe(period)
+        predictions = prophet2.predict(future)
         
         # Check if predictions are a Series or DataFrame
         if isinstance(predictions, pd.Series):

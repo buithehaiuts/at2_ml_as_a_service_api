@@ -132,14 +132,18 @@ def predict_sales(model, input_data: pd.DataFrame) -> List[Dict[str, Any]]:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 # Forecast function for total sales across all stores and items
-def forecast_sales(model, period: int = 7) -> List[Dict[str, Any]]:
+def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:
     """Make a sales forecast using the selected time-series model."""
     if model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     try:
-        # Create a dataframe for future dates (for the specified number of periods)
-        future_dates = model.make_future_dataframe(periods=period)  # Use the provided period
+        # Convert the input start date to a datetime object
+        start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        
+        # Create a dataframe for future dates starting from the specified start date
+        future_dates = model.make_future_dataframe(periods=period, freq='D')
+        future_dates['ds'] = [start_date_dt + timedelta(days=i) for i in range(period)]
         
         # Forecast the total revenue for future dates
         train_forecast = model.predict(future_dates)
@@ -175,15 +179,15 @@ async def predict_item_sales(
     prediction = predict_sales(predictive_model, input_data)
     return {"model": "prophet_predictive_model", "prediction": prediction}
 
-# Endpoint for forecasting total sales across all stores and items
+# FastAPI endpoint for forecasting total sales across all stores and items
 @app.get("/v1/sales/forecast/")
-async def forecast_total_sales():
-    """Forecast total sales across all stores and items for the next 7 days."""
-    # Use the main forecasting model (e.g., prophet)
+async def forecast_total_sales(start_date: str):
+    """Forecast total sales across all stores and items for the next 7 days from the given start date."""
+    # Use the main forecasting model (e.g., Prophet)
     forecasting_model = app.state.models['prophet']
-    forecast = forecast_sales(forecasting_model, period=7)
+    forecast = forecast_sales(forecasting_model, start_date=start_date, period=7)
     return {"model": "prophet", "forecast": forecast}
-
+    
 # Run the application if executed directly
 if __name__ == "__main__":
     # Configure the port and host dynamically

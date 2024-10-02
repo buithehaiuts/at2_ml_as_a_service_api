@@ -1,17 +1,14 @@
-# Use Python 3.11-slim as the base image (you can also stick with 3.9-slim if you prefer)
-FROM python:3.11-slim
+# Use Python 3.9-slim as the base image
+FROM python:3.9-slim
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the pyproject.toml and poetry.lock files to the working directory
-COPY pyproject.toml poetry.lock ./
+# Copy the requirements.txt from the root of the project to the working directory
+COPY requirements.txt ./  
 
-# Install Poetry
-RUN pip install poetry
-
-# Install the dependencies specified in pyproject.toml
-RUN poetry install --no-interaction --no-root
+# Install the dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the backend folder inside the app folder
 COPY app/backend/ ./backend
@@ -20,4 +17,4 @@ COPY app/backend/ ./backend
 EXPOSE 8000
 
 # Command to run FastAPI
-CMD ["poetry", "run", "uvicorn", "backend.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "backend.api:app", "--host", "0.0.0.0", "--port", "8000"]

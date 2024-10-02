@@ -32,8 +32,8 @@ class SalesResponse(BaseModel):
 
 # Create FastAPI instance with versioning
 app = FastAPI(
-    title="Sales Forecast API",
-    description="API for forecasting sales using various models.",
+    title="Sales Forecast and Prediction API",
+    description="API for forecasting and predicting sales revenue using machine learning and time-series models.",
     version="1.0.0"
 )
 
@@ -68,7 +68,7 @@ async def startup_event():
         'prophet_event': 'models/prophet_event.pkl',
         'prophet_holiday': 'models/prophet_holiday.pkl',
         'prophet_month': 'models/prophet_month.pkl',
-        'prophet_predictive_model':'models/prophet_predictive_model.pkl'
+        'prophet_predictive_model': 'models/prophet_predictive_model.pkl'  # Used for predicting specific sales
     }
     for model_name, model_path in model_files.items():
         logger.info(f"Attempting to load model from: {model_path}")  # Log the model loading path
@@ -96,7 +96,7 @@ async def read_root():
     logger.info(f"Resolved Root Path: {root}")
 
     return {
-        "message": "Welcome to the Sales Forecast API!",
+        "message": "Welcome to the Sales Forecast and Prediction API!",
         "root": str(root)  # Convert Path to string for the response
     }
 
@@ -113,76 +113,73 @@ async def health_check():
     """Health Check endpoint to ensure the API is up."""
     return HealthCheck(status="healthy")
 
-# Prediction function
-def predict(model,period=7, input: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Make a prediction using the selected model."""
+# Prediction function for sales using the predictive model
+def predict_sales(model, input_data: pd.DataFrame) -> List[Dict[str, Any]]:
+    """Make a prediction using the Prophet predictive model."""
     if model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     try:
-        future = model.make_future_dataframe(period)
-        predictions = prophet2.predict(future)
+        # Perform prediction using the input data
+        predictions = model.predict(input_data)
         
-        # Check if predictions are a Series or DataFrame
-        if isinstance(predictions, pd.Series):
-            return predictions.tolist()  # This works on Series
-        elif isinstance(predictions, pd.DataFrame):
-            return predictions.values.tolist()  # Use .values for DataFrame, then convert to list
-        else:
-            raise HTTPException(status_code=500, detail="Unknown prediction output format.")
+        # Extract relevant columns for output (e.g., ds = date, yhat = forecasted value)
+        output = predictions[['ds', 'yhat']].to_dict(orient='records')
+        
+        return output
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
+# Forecast function for total sales across all stores and items
+def forecast_sales(model, period: int = 7) -> List[Dict[str, Any]]:
+    """Make a sales forecast using the selected time-series model."""
+    if model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
 
-# Endpoint for national sales forecast (uses query parameters)
-@app.get("/v1/sales/national/")
-async def national_sales_forecast(
+    try:
+        future = model.make_future_dataframe(period)  # Create a future dataframe for predictions
+        predictions = model.predict(future)
+        
+        # Extract relevant columns for output
+        output = predictions[['ds', 'yhat']].to_dict(orient='records')
+        
+        return output
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
+
+# Endpoint for predicting sales for a specific item in a store (uses POST request)
+@app.post("/v1/sales/predict/")
+async def predict_item_sales(
     ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
     item_id: str = Query(..., description="Item ID for the product"),
     store_id: str = Query(..., description="Store ID for the store"),
-    model_type: str = Query('prophet', description="Model type (default: prophet)")
 ):
-    """Get national sales forecast using the specified model."""
-    if not validate_date(ds):  # Corrected the variable name from 'date' to 'ds'
+    """Predict sales for a specific item in a specific store."""
+    if not validate_date(ds):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
-    if model_type not in app.state.models:
-        raise HTTPException(status_code=404, detail=f"Model '{model_type}' not found.")
-
     # Prepare input for prediction
-    forecast_input = pd.DataFrame({
-        'ds': [ds],
-        'item_id': [item_id],
-        'store_id': [store_id]
+    input_data = pd.DataFrame({
+        'ds': [ds],  # Date
+        'item_id': [item_id],  # Item ID
+        'store_id': [store_id]  # Store ID
     })
 
-    pred = predict(app.state.models[model_type], forecast_input)
-    return {"model": model_type, "prediction": pred}
+    # Use the prophet_predictive_model for predictions
+    predictive_model = app.state.models['prophet_predictive_model']
+    prediction = predict_sales(predictive_model, input_data)
+    return {"model": "prophet_predictive_model", "prediction": prediction}
 
-# Endpoint for predicting sales based on store and item (POST request for input data)
-@app.post("/v1/sales/stores/items/")
-async def predict_sales(
-    ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
-    item_id: str = Query(..., description="Item ID for the product"),
-    store_id: str = Query(..., description="Store ID for the store"),
-    model_type: str = Query('prophet', description="Model type (default: prophet)")
-):
-    """Predict sales based on store and item using a POST request."""
-    if not validate_date(ds):  # Ensure correct date validation
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-
-    if model_type not in app.state.models:
-        raise HTTPException(status_code=404, detail=f"Model '{model_type}' not found.")
-    
-    # Prepare input for prediction
-    predictive_input = pd.DataFrame({
-        'ds': [ds],
-        'item_id': [item_id],
-        'store_id': [store_id]
-    })
-
-    pred = predict(app.state.models[model_type], predictive_input)
-    return {"model": model_type, "prediction": pred}
+# Endpoint for forecasting total sales across all stores and items
+@app.get("/v1/sales/forecast/")
+async def forecast_total_sales():
+    """Forecast total sales across all stores and items for the next 7 days."""
+    # Use the main forecasting model (e.g., prophet)
+    forecasting_model = app.state.models['prophet']
+    forecast = forecast_sales(forecasting_model, period=7)
+    return {"model": "prophet", "forecast": forecast}
 
 # Run the application if executed directly
 if __name__ == "__main__":

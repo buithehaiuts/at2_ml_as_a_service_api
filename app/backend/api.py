@@ -143,7 +143,9 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
         
         # Create a dataframe for future dates starting from the specified start date
         future_dates = model.make_future_dataframe(periods=period, freq='D')
-        future_dates['ds'] = [start_date_dt + timedelta(days=i) for i in range(period)]
+        
+         # Replace the last 'period' entries in the 'ds' column with the new future dates
+        future_dates['ds'][-period:] = [start_date_dt + timedelta(days=i) for i in range(period)]
         
         # Forecast the total revenue for future dates
         train_forecast = model.predict(future_dates)

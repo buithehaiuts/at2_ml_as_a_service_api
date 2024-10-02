@@ -6,12 +6,12 @@ services:
     name: fastapi-backend
     plan: free  # Choose an appropriate plan
     autoDeploy: true  # Enable auto-deployment on changes
-    # envVars:  # Environment variables
-    #   - key: PORT
-    #     value: "8000"  # Port to run the FastAPI app
-    #   - key: PYTHONUNBUFFERED
-    #     value: "1"  # Ensure logs are output in real-time
-    # healthCheckPath: "/health/"  # Health check endpoint
+    envVars:  # Environment variables for the FastAPI backend
+      - key: PORT
+        value: "8000"  # Port to run the FastAPI app
+      - key: PYTHONUNBUFFERED
+        value: "1"  # Ensure logs are output in real-time
+    healthCheckPath: "/health/"  # Health check endpoint for FastAPI
     dockerfilePath: "app/backend/Dockerfile"  # Path to the backend Dockerfile
 
   - type: web
@@ -19,18 +19,18 @@ services:
     runtime: docker
     plan: free  # Choose an appropriate plan
     autoDeploy: true  # Enable auto-deployment on changes
-    # envVars:  # Environment variables
-    #   - key: PORT
-    #     value: "8501"  # Port to run the Streamlit app
-    #   - key: PYTHONUNBUFFERED
-    #     value: "1"  # Ensure logs are output in real-time
-    # healthCheckPath: "/health"  # Health check endpoint
+    envVars:  # Environment variables for the Streamlit frontend
+      - key: PORT
+        value: "8501"  # Port to run the Streamlit app
+      - key: PYTHONUNBUFFERED
+        value: "1"  # Ensure logs are output in real-time
+    healthCheckPath: "/health"  # Health check endpoint for Streamlit
     dockerfilePath: "app/frontend/Dockerfile"  # Path to the frontend Dockerfile
 
 # Networking settings to allow the Streamlit app to access the FastAPI app
-  # - type: web
-  #   runtime: python
-  #   name: api-network
-  #   plan: free
-  #   autoDeploy: true
-  #   healthCheckPath: "/health/"
+ - type: web
+   runtime: python
+   name: api-network
+   plan: free
+   autoDeploy: true
+   healthCheckPath: "/health/"

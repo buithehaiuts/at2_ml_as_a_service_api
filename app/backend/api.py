@@ -138,11 +138,14 @@ def forecast_sales(model, period: int = 7) -> List[Dict[str, Any]]:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     try:
-        future = model.make_future_dataframe(period)  # Create a future dataframe for predictions
-        predictions = model.predict(future)
+        # Create a dataframe for future dates (for the specified number of periods)
+        future_dates = model.make_future_dataframe(periods=period)  # Use the provided period
+        
+        # Forecast the total revenue for future dates
+        train_forecast = model.predict(future_dates)
         
         # Extract relevant columns for output
-        output = predictions[['ds', 'yhat']].to_dict(orient='records')
+        output = train_forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].to_dict(orient='records')
         
         return output
         

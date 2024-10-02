@@ -120,9 +120,17 @@ def predict(model, input: pd.DataFrame) -> List[Dict[str, Any]]:
 
     try:
         predictions = model.predict(input)
-        return predictions.tolist()
+        
+        # Check if predictions are a Series or DataFrame
+        if isinstance(predictions, pd.Series):
+            return predictions.tolist()  # This works on Series
+        elif isinstance(predictions, pd.DataFrame):
+            return predictions.values.tolist()  # Use .values for DataFrame, then convert to list
+        else:
+            raise HTTPException(status_code=500, detail="Unknown prediction output format.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
 
 # Endpoint for national sales forecast (uses query parameters)
 @app.get("/v1/sales/national/")

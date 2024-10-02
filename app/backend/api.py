@@ -67,7 +67,8 @@ async def startup_event():
         'prophet': 'models/prophet.pkl',
         'prophet_event': 'models/prophet_event.pkl',
         'prophet_holiday': 'models/prophet_holiday.pkl',
-        'prophet_month': 'models/prophet_month.pkl'
+        'prophet_month': 'models/prophet_month.pkl',
+        'prophet_predictive_model':'models/prophet_predictive_model.pkl"
     }
     for model_name, model_path in model_files.items():
         logger.info(f"Attempting to load model from: {model_path}")  # Log the model loading path

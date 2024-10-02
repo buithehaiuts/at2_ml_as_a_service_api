@@ -1,5 +1,5 @@
 Cython>=0.22
-numpy
+numpy==1.23.5
 black==23.3.0
 pystan==2.19.1.1
 flake8==5.0

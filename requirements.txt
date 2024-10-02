@@ -1,5 +1,5 @@
 scikit-learn==1.5.2
-streamlit==1.5.2
+streamlit==1.39.0
 uvicorn==0.31.0
 prophet==1.1.5
 pickle

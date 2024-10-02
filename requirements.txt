@@ -4,4 +4,4 @@ uvicorn==0.31.0
 prophet==1.1.5
 pickle
 matplotlib==3.9.2
-requests=2.32.3
+requests==2.32.3

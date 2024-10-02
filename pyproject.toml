@@ -13,12 +13,22 @@ pandas = "2.2.2"
 scikit-learn = "1.5.1"
 numpy = "1.23.5"
 cmdstanpy = "^1.0.0"
+Cython = ">=0.22"
+loguru = "0.6.0"
+python-dotenv = "0.21.0"
+tqdm = "4.66.5"
+typer = "0.12.5"
+prophet = "1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 # Dev dependencies (optional)
-uvicorn = "^0.31.0"
+uvicorn = "^0.21.1"  # Updated to match requirements.txt
 pytest = "^7.0"  # Add any other dev dependencies you need
+black = "23.3.0"
+flake8 = "5.0"
+isort = "5.0"
+mkdocs = "1.6.1"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

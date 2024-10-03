@@ -86,20 +86,44 @@ async def startup_event():
 
 @app.get("/")
 async def read_root():
-    """Return a welcome message at the root endpoint and the project root path."""
-    logger.info(f"Current Working Directory: {current_directory}")
-    
-    # Navigate to the project root (two levels up)
-    root = current_directory.parent.parent
-    
-    # Print the resolved root path for debugging
-    logger.info(f"Resolved Root Path: {root}")
-
-    return {
-        "message": "Welcome to the Sales Forecast and Prediction API!",
-        "root": str(root)  # Convert Path to string for the response
+    """
+    Return project objectives, list of endpoints, input/output format, and GitHub repo link.
+    """
+    project_info = {
+        "project_objectives": "This API provides sales forecasting and store-item sales prediction. "
+                              "It allows users to forecast national sales for the next 7 days and predict sales "
+                              "for specific store items on a given date.",
+        "endpoints": {
+            "/": "Displays project objectives, API details, and GitHub repo link. Nelow is the list of expected API endpoints",
+            "/health/": {
+                "description": "Checks the API health.",
+                "method": "GET",
+                "response": {"status": "API is healthy and running!"}
+            },
+            "/sales/national/": {
+                "description": "Forecasts next 7 days of national sales starting from the input date.",
+                "method": "GET",
+                "input_parameters": {"date": "YYYY-MM-DD"},
+                "output_format": {
+                    "2016-01-01": 10000.01,
+                    "2016-01-02": 10001.12,
+                    "2016-01-03": 10002.22,
+                }
+            },
+            "/sales/stores/items/": {
+                "description": "Predicts sales for a specific store and item on a given date.",
+                "method": "GET",
+                "input_parameters": {
+                    "date": "YYYY-MM-DD",
+                    "store_id": "Store ID",
+                    "item_id": "Item ID"
+                },
+                "output_format": {"prediction": 19.72}
+            }
+        },
+        "github_repo": "https://github.com/buithehaiuts/at2_ml_as_a_service_api"
     }
-
+    return project_info
 # Health check endpoint
 @app.get(
     "/health/",
@@ -162,7 +186,7 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
         raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
         
 # Endpoint for predicting sales for a specific item in a store (uses POST request)
-@app.post("/v1/sales/predict/")
+@app.post("/sales/stores/items/")
 async def predict_item_sales(
     ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
     item_id: str = Query(..., description="Item ID for the product"),
@@ -185,7 +209,7 @@ async def predict_item_sales(
     return {"model": "prophet_predictive_model", "prediction": prediction}
 
 # FastAPI endpoint for forecasting total sales across all stores and items
-@app.get("/v1/sales/forecast/")
+@app.get("/sales/national/")
 async def forecast_total_sales(start_date: str):
     """Forecast total sales across all stores and items for the next 7 days from the given start date."""
     # Use the main forecasting model (e.g., Prophet)

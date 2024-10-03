@@ -185,8 +185,8 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
         
-# Endpoint for predicting sales for a specific item in a store (uses POST request)
-@app.post("/sales/stores/items/")
+# Endpoint for predicting sales for a specific item in a store (uses get request)
+@app.get("/sales/stores/items/")
 async def predict_item_sales(
     ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
     item_id: str = Query(..., description="Item ID for the product"),

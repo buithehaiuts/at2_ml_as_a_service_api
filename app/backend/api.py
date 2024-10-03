@@ -64,10 +64,10 @@ def validate_date(date_str: str) -> bool:
 async def startup_event():
     # Define model file paths using Path
     model_files = {
-        'prophet': 'models/prophet.pkl',
-        'prophet_event': 'models/prophet_event.pkl',
-        'prophet_holiday': 'models/prophet_holiday.pkl',
-        'prophet_month': 'models/prophet_month.pkl',
+        'prophet': 'models/prophet.pkl', # Forecasting model
+        'prophet_event': 'models/prophet_event.pkl', # Forecasting model
+        'prophet_holiday': 'models/prophet_holiday.pkl',# Forecasting model
+        'prophet_month': 'models/prophet_month.pkl', # Forecasting model
         'prophet_predictive_model': 'models/prophet_predictive_model.pkl'  # Used for predicting specific sales
     }
     for model_name, model_path in model_files.items():
@@ -210,12 +210,42 @@ async def predict_item_sales(
 
 # FastAPI endpoint for forecasting total sales across all stores and items
 @app.get("/sales/national/")
-async def forecast_total_sales(start_date: str):
-    """Forecast total sales across all stores and items for the next 7 days from the given start date."""
-    # Use the main forecasting model (e.g., Prophet)
-    forecasting_model = app.state.models['prophet']
-    forecast = forecast_sales(forecasting_model, start_date=start_date, period=7)
-    return {"model": "prophet", "forecast": forecast}
+async def forecast_total_sales(start_date: str, models: str = "prophet"):
+    """
+    Forecast total sales across all stores and items for the next 7 days from the given start date.
+
+    Args:
+        start_date (str): The starting date for the forecast in YYYY-MM-DD format.
+        models (str, optional): Comma-separated list of model names to use for forecasting. 
+                                Defaults to "prophet". Available models are:
+                                - prophet
+                                - prophet_event
+                                - prophet_holiday
+                                - prophet_month
+
+    Returns:
+        dict: A dictionary containing the forecasts from the specified models.
+    """
+    # Split the models string into a list
+    selected_models = models.split(",")
+    
+    # Initialize a dictionary to hold forecasts
+    forecasts = {}
+    
+    # Iterate through selected models and validate them
+    for model_name in selected_models:
+        model_name = model_name.strip()  # Remove any leading/trailing whitespace
+        if model_name not in app.state.models:
+            raise HTTPException(status_code=400, detail=f"Model '{model_name}' is not available.")
+        
+        # Retrieve the model
+        forecasting_model = app.state.models[model_name]
+        
+        # Generate the forecast
+        forecast = forecast_sales(forecasting_model, start_date=start_date, period=7)
+        forecasts[model_name] = forecast  # Store the forecast in the dictionary
+
+    return {"forecasts": forecasts}
     
 # Run the application if executed directly
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ selected_tab = st.sidebar.radio("Select a Tab",
                                  "About"])
 
 # Load item IDs from the JSON file
-with open('list_item.json') as f:
+with open('app/frontend/list_item.json') as f:
     item_ids = json.load(f)
 
 # API Base URL

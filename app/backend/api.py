@@ -241,7 +241,7 @@ async def predict_item_sales(
 ) -> SalesResponse:
     """Predicts sales for a specific store and item on a given date."""
     # Validate the input date
-    if not validate_date(ds):
+    if not validate_date(date):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
     # Parse the date and extract features

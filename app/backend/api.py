@@ -40,6 +40,18 @@ app = FastAPI(
 # Load models into a centralized dictionary
 app.state.models = {}
 
+
+# Load the id_values.json file
+with open('id_values.json', 'r') as f:
+    id_values = json.load(f)
+
+# Extracting values for dropdowns from JSON
+item_ids = id_values.get("item_id", [])
+store_ids = id_values.get("store_id", [])
+state_ids = id_values.get("state_id", [])
+cat_ids = id_values.get("cat_id", [])
+dept_ids = id_values.get("dept_id", [])
+
 def load_model(model_path: str):
     """Load a prediction model from a file."""
     model_path = Path(model_path).resolve()
@@ -142,7 +154,7 @@ async def health_check():
 
 # Prediction function for sales using the predictive model
 def predict_sales(model, input_data: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Make a prediction using the Prophet predictive model."""
+    """Make a prediction using the predictive_lgbm model."""
     if model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
@@ -192,12 +204,12 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
 @app.get("/sales/stores/items/")
 async def predict_item_sales(
     ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
-    item_id: str = Query(..., description="Item ID for the product"),
-    store_id: str = Query(..., description="Store ID for the store"),
-    state_id: str = Query(..., description="State ID for the store"),
-    cat_id = Query(..., description="Category ID for the product"),
-    dept_id = str = Query(..., description="Department ID for the store"),
-):
+    item_id: str = Query(..., description="Item ID for the product", enum=item_ids),
+    store_id: str = Query(..., description="Store ID for the store", enum=store_ids),
+    state_id: str = Query(..., description="State ID for the store", enum=state_ids),
+    cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),  
+    dept_id: str = Query(..., description="Department ID for the store", enum=dept_ids),):
+        
     """Predict sales for a specific item in a specific store."""
     if not validate_date(ds):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
@@ -213,10 +225,10 @@ async def predict_item_sales(
         
     })
 
-    # Use the prophet_predictive_model for predictions
-    predictive_model = app.state.models['prophet_predictive_model']
+    # Use the predictive_lgbm for predictions
+    predictive_model = app.state.models['predictive_lgbm']
     prediction = predict_sales(predictive_model, input_data)
-    return {"model": "prophet_predictive_model", "prediction": prediction}
+    return {"model": "predictive_model", "prediction": prediction}
 
 # FastAPI endpoint for forecasting total sales across all stores and items
 @app.get("/sales/national/")

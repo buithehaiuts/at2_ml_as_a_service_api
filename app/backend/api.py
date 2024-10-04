@@ -232,7 +232,7 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
 # Endpoint for predicting sales for a specific item in a store (GET request)
 @app.get("/sales/stores/items/")
 async def predict_item_sales(
-    ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
+    date: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
     item_id: str = Query(..., description="Item ID for the product", enum=item_ids),
     store_id: str = Query(..., description="Store ID for the specific location", enum=store_ids),
     state_id: str = Query(..., description="State ID for the location", enum=state_ids),
@@ -244,13 +244,22 @@ async def predict_item_sales(
     if not validate_date(ds):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
+    # Parse the date and extract features
+    date_obj = datetime.strptime(date, "%Y-%m-%d")
+    day = date_obj.day
+    month = date_obj.month
+    year = date_obj.year
+    
     # Create a DataFrame from the input data
     input_data = pd.DataFrame({
         'item_id': [item_id],
         'store_id': [store_id],
         'state_id': [state_id],
         'cat_id': [cat_id],
-        'dept_id': [dept_id]
+        'dept_id': [dept_id],
+        'day': [day],       # Add day feature
+        'month': [month],   # Add month feature
+        'year': [year]      # Add year feature
     })
 
     try:

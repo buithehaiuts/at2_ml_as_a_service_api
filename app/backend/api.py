@@ -81,11 +81,21 @@ async def startup_event():
     for model_name, model_path in model_files.items():
         model_path = Path(model_path).resolve()
         if model_path.exists():
-            app.state.models[model_name] = load_model(str(model_path))
-            logger.info(f"{model_name} model loaded successfully.")
+            # Handle LightGBM model differently if it's saved with a scaler
+            if model_name == 'predictive_lgbm':
+                try:
+                    with open(model_path, 'rb') as f:
+                        model, scaler = pickle.load(f)  # Load model and scaler
+                        app.state.models[model_name] = {'model': model, 'scaler': scaler}
+                    logger.info(f"{model_name} model and scaler loaded successfully.")
+                except Exception as e:
+                    logger.error(f"Error loading {model_name}: {str(e)}")
+            else:
+                app.state.models[model_name] = load_model(str(model_path))
+                logger.info(f"{model_name} model loaded successfully.")
         else:
             logger.warning(f"Model file does not exist: {model_path}")
-
+            
     # Load encoders
     encoder_files = {
         'item_id': 'app/backend/item_encoder.pkl',
@@ -106,7 +116,7 @@ async def startup_event():
                 logger.error(f"Error loading {encoder_name} encoder from {encoder_path}: {str(e)}")
         else:
             logger.warning(f"Encoder file does not exist: {encoder_path}")
-
+            
 @app.get("/")
 async def read_root():
     """

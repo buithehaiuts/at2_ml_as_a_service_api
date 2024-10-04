@@ -96,6 +96,30 @@ async def startup_event():
         else:
             logger.warning(f"Model file does not exist: {model_path}")
 
+    # Load encoders
+    encoder_files = {
+        'item_id': 'item_id_encoder.pkl',
+        'store_id': 'store_id_encoder.pkl',
+        'state_id': 'state_id_encoder.pkl',
+        'cat_id': 'cat_id_encoder.pkl',
+        'dept_id': 'dept_id_encoder.pkl'
+    }
+
+    for encoder_name, encoder_path in encoder_files.items():
+        logger.info(f"Attempting to load encoder from: {encoder_path}")
+        encoder_path = Path(encoder_path).resolve()
+        
+        if encoder_path.exists():  # Check if the encoder file exists
+            try:
+                with open(str(encoder_path), 'rb') as f:
+                    app.state.encoders[encoder_name] = pickle.load(f)
+                logger.info(f"{encoder_name} encoder loaded successfully.")
+            except Exception as e:
+                logger.error(f"Error loading {encoder_name} encoder from {encoder_path}: {str(e)}")
+        else:
+            logger.warning(f"Encoder file does not exist: {encoder_path}")
+
+
 @app.get("/")
 async def read_root():
     """
@@ -224,6 +248,11 @@ async def predict_item_sales(
         'dept_id': [cat_id]
         
     })
+        
+    # Encode categorical features using the loaded encoders
+    for column in ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id']:
+        encoder = app.state.encoders[column]
+        input_data[column] = encoder.transform(input_data[[column]])
 
     # Use the predictive_lgbm for predictions
     predictive_model = app.state.models['predictive_lgbm']

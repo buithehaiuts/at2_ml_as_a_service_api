@@ -174,6 +174,7 @@ async def health_check():
     """Health Check endpoint to ensure the API is up."""
     return HealthCheck(status="healthy")
 
+
 # Prediction function for sales using the predictive model
 def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
     """Make a prediction using the LightGBM model and scaler."""
@@ -184,7 +185,7 @@ def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
         raise ValueError("Model or scaler not loaded")
 
     # Ensure the input data is properly formatted
-    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id']  
+    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id', 'day', 'month', 'year']  
     missing_columns = [col for col in required_columns if col not in input_data.columns]
     
     if missing_columns:
@@ -237,24 +238,25 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
 
-from datetime import datetime
 
 # Endpoint for predicting sales for a specific item in a store (GET request)
 @app.get("/sales/stores/items/")
 async def predict_item_sales(
     ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
-    item_id: str = Query(..., description="Item ID for the product", enum=item_ids),
-    store_id: str = Query(..., description="Store ID for the store", enum=store_ids),
-    state_id: str = Query(..., description="State ID for the store", enum=state_ids),
-    cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),  
-    dept_id: str = Query(..., description="Department ID for the store", enum=dept_ids)
+    item_id: str = Query(..., description="Item ID for the product"),
+    store_id: str = Query(..., description="Store ID for the store"),
+    state_id: str = Query(..., description="State ID for the store"),
+    cat_id: str = Query(..., description="Category ID for the product"),
+    dept_id: str = Query(..., description="Department ID for the store")
 ):
     """Predict sales for a specific item in a specific store."""
-    if not validate_date(ds):
+    # Validate the date format
+    try:
+        date_obj = datetime.strptime(ds, '%Y-%m-%d')
+    except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
     # Extract day, month, and year from ds
-    date_obj = datetime.strptime(ds, '%Y-%m-%d')
     day = date_obj.day
     month = date_obj.month
     year = date_obj.year
@@ -271,8 +273,9 @@ async def predict_item_sales(
         'dept_id': [dept_id],
     })
     
-    model = app.state.models['predictive_lgbm']
-    predictions = predict_sales(model, input_data)
+    # Retrieve the model information for prediction
+    model_info = app.state.models['predictive_lgbm']
+    predictions = predict_sales(model_info, input_data)
     
     # Return predictions in a structured format
     return {"predicted_sales": predictions}

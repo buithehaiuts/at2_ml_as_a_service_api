@@ -174,12 +174,7 @@ async def health_check():
 # Prediction function for sales using the predictive model
 def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
     """Make a prediction using the LightGBM model and scaler."""
-    if isinstance(model_info, tuple):
-        model = model_info[0]  
-        scaler = model_info[1]  
-    else:
-        model = model_info['model']
-        scaler = model_info['scaler']
+    model, scaler = model_info  # Unpack model and scaler from the tuple
     
     if model is None or scaler is None:
         raise ValueError("Model or scaler not loaded")

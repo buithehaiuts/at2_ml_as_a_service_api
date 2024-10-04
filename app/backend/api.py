@@ -239,8 +239,8 @@ async def predict_item_sales(
         'cat_id': [cat_id],
         'dept_id': [dept_id],
     })
-
-    predictions = predict_sales(app.state.models['predictive_lgbm'], input_data)
+    model = app.state.models['predictive_lgbm']
+    predictions = predict_sales(model, input_data)
     return {"prediction": predictions[0]['yhat']}
 
 # Endpoint for forecasting national sales (GET request)

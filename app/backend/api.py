@@ -237,6 +237,8 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
 
+from datetime import datetime
+
 # Endpoint for predicting sales for a specific item in a store (GET request)
 @app.get("/sales/stores/items/")
 async def predict_item_sales(
@@ -251,17 +253,28 @@ async def predict_item_sales(
     if not validate_date(ds):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
+    # Extract day, month, and year from ds
+    date_obj = datetime.strptime(ds, '%Y-%m-%d')
+    day = date_obj.day
+    month = date_obj.month
+    year = date_obj.year
+
     # Prepare input data for the predictive model
     input_data = pd.DataFrame({
-        'ds': [ds],
+        'date': [ds],
+        'day': [day],
+        'month': [month],
+        'year': [year],
         'item_id': [item_id],
         'store_id': [store_id],
         'state_id': [state_id],
         'cat_id': [cat_id],
         'dept_id': [dept_id],
     })
+    
     model = app.state.models['predictive_lgbm']
     predictions = predict_sales(model, input_data)
+    
     # Return predictions in a structured format
     return {"predicted_sales": predictions}
 

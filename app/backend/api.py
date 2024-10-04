@@ -175,25 +175,37 @@ async def health_check():
     return HealthCheck(status="healthy")
 
 # Prediction function for sales using the predictive model
-def predict_sales(model, input_data: pd.DataFrame) -> List[float]:
-    """Make a prediction using the LightGBM model."""
-    if model is None:
-        raise ValueError("Model not loaded")
+def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
+    """Make a prediction using the LightGBM model and scaler."""
+    model = model_info['model']
+    scaler = model_info['scaler']
+    
+    if model is None or scaler is None:
+        raise ValueError("Model or scaler not loaded")
 
     # Ensure the input data is properly formatted
-    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id']  # Add other feature columns as needed
+    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id']  
     missing_columns = [col for col in required_columns if col not in input_data.columns]
     
     if missing_columns:
         raise ValueError(f"Missing columns in input data: {', '.join(missing_columns)}")
     
     # Prepare input data (make sure to preprocess it similarly to the training data)
-    X = input_data[required_columns]  # Assuming the features match those used in training
+    X = input_data[required_columns]  # Extract the relevant features
 
-    # Perform prediction using the input data
-    predictions = model.predict(X)
+    # Encode categorical features (if needed)
+    for col in required_columns:
+        if col in app.state.encoders:
+            encoder = app.state.encoders[col]
+            X[col] = encoder.transform(X[col])  # Use the encoder to transform the feature
 
-    return predictions.tolist()  # Return predictions as a list        
+    # Scale the features using the scaler
+    X_scaled = scaler.transform(X)
+
+    # Perform prediction using the scaled input data
+    predictions = model.predict(X_scaled)
+
+    return predictions.tolist()  # Return predictions as a list
 
 # Forecast function for total sales across all stores and items
 def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:

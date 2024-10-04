@@ -9,7 +9,7 @@ import uvicorn
 import json
 import logging
 from datetime import datetime, timedelta
-import lightgbm  # Ensure lightgbm is installed
+from lightgbm import LGBMRegressor
 
 # Set up logging for better traceability
 logging.basicConfig(level=logging.INFO)

@@ -241,8 +241,8 @@ async def predict_item_sales(
     # Prepare input for prediction
     input_data = pd.DataFrame({
         'ds': [ds],  # Date
-        'item_id': [item_id],  # Item ID
-        'store_id': [store_id]  # Store ID,
+        'item_id': [item_id], 
+        'store_id': [store_id],
         'state_id' : [state_id],
         'cat_id': [cat_id],
         'dept_id': [cat_id]

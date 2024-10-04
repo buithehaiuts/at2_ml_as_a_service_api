@@ -243,10 +243,9 @@ async def predict_item_sales(
         'ds': [ds],  # Date
         'item_id': [item_id],  # Item ID
         'store_id': [store_id]  # Store ID,
-        'state_id : [state_id],
+        'state_id' : [state_id],
         'cat_id': [cat_id],
         'dept_id': [cat_id]
-        
     })
         
     # Encode categorical features using the loaded encoders

@@ -54,7 +54,7 @@ class SalesResponse(BaseModel):
 
 def load_model(model_path: str):
     """Load a prediction model from a file."""
-    with open(model_path, 'rb') as f:  # Open the file in binary read mode
+    with open(model_path, 'rb') as f:
         return pickle.load(f)
         
 def validate_date(date_str: str) -> bool:
@@ -81,18 +81,17 @@ async def startup_event():
     for model_name, model_path in model_files.items():
         model_path = Path(model_path).resolve()
         if model_path.exists():
-            # Handle LightGBM model differently if it's saved with a scaler
-            if model_name == 'predictive_lgbm':
-                try:
+            try:
+                if model_name == 'predictive_lgbm':
                     with open(model_path, 'rb') as f:
-                        model, scaler = pickle.load(f)  # Load model and scaler
+                        model, scaler = pickle.load(f)  
                         app.state.models[model_name] = {'model': model, 'scaler': scaler}
                     logger.info(f"{model_name} model and scaler loaded successfully.")
-                except Exception as e:
-                    logger.error(f"Error loading {model_name}: {str(e)}")
-            else:
-                app.state.models[model_name] = load_model(str(model_path))
-                logger.info(f"{model_name} model loaded successfully.")
+                else:
+                    app.state.models[model_name] = load_model(str(model_path))
+                    logger.info(f"{model_name} model loaded successfully.")
+            except Exception as e:
+                logger.error(f"Error loading {model_name}: {str(e)}")
         else:
             logger.warning(f"Model file does not exist: {model_path}")
             
@@ -116,12 +115,10 @@ async def startup_event():
                 logger.error(f"Error loading {encoder_name} encoder from {encoder_path}: {str(e)}")
         else:
             logger.warning(f"Encoder file does not exist: {encoder_path}")
-            
+
 @app.get("/")
 async def read_root():
-    """
-    Return project objectives, list of endpoints, input/output format, and GitHub repo link.
-    """
+    """Return project objectives and API details."""
     project_info = {
         "project_objectives": "This API provides sales forecasting and store-item sales prediction. "
                               "It allows users to forecast national sales for the next 7 days and predict sales "
@@ -177,8 +174,12 @@ async def health_check():
 # Prediction function for sales using the predictive model
 def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
     """Make a prediction using the LightGBM model and scaler."""
-    model = model_info['model']
-    scaler = model_info['scaler']
+    if isinstance(model_info, tuple):
+        model = model_info[0]  
+        scaler = model_info[1]  
+    else:
+        model = model_info['model']
+        scaler = model_info['scaler']
     
     if model is None or scaler is None:
         raise ValueError("Model or scaler not loaded")
@@ -191,9 +192,9 @@ def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
         raise ValueError(f"Missing columns in input data: {', '.join(missing_columns)}")
     
     # Prepare input data (make sure to preprocess it similarly to the training data)
-    X = input_data[required_columns]  # Extract the relevant features
+    X = input_data[required_columns].copy()
 
-    # Encode categorical features (if needed)
+    # Encode categorical features
     for col in required_columns:
         if col in app.state.encoders:
             encoder = app.state.encoders[col]
@@ -205,7 +206,7 @@ def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
     # Perform prediction using the scaled input data
     predictions = model.predict(X_scaled)
 
-    return predictions.tolist()  # Return predictions as a list
+    return predictions.tolist()  
 
 # Forecast function for total sales across all stores and items
 def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:
@@ -214,22 +215,13 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     try:
-        # Convert the input start date to a datetime object
         start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-
-        # Forecast starts from the next day
         forecast_start_date = start_date_dt + timedelta(days=1)
 
-        # Create a dataframe for future dates starting from the specified start date
         future_dates = model.make_future_dataframe(periods=period)
-
-        # Replace the last 'period' entries in the 'ds' column with the new future dates
         future_dates['ds'][-period:] = [forecast_start_date + timedelta(days=i) for i in range(period)]
-
-        # Forecast the total revenue for future dates
+        
         train_forecast = model.predict(future_dates)
-
-        # Filter the forecast to only include the new future dates
         output = train_forecast[train_forecast['ds'] >= forecast_start_date][['ds', 'yhat', 'yhat_lower', 'yhat_upper']].to_dict(orient='records')
 
         return output
@@ -237,57 +229,59 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
 
-from datetime import datetime
-
 # Endpoint for predicting sales for a specific item in a store (GET request)
 @app.get("/sales/stores/items/")
 async def predict_item_sales(
     ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
     item_id: str = Query(..., description="Item ID for the product", enum=item_ids),
-    store_id: str = Query(..., description="Store ID for the store", enum=store_ids),
-    state_id: str = Query(..., description="State ID for the store", enum=state_ids),
-    cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),  
-    dept_id: str = Query(..., description="Department ID for the store", enum=dept_ids)
-):
-    """Predict sales for a specific item in a specific store."""
+    store_id: str = Query(..., description="Store ID for the specific location", enum=store_ids),
+    state_id: str = Query(..., description="State ID for the location", enum=state_ids),
+    cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),
+    dept_id: str = Query(..., description="Department ID for the product", enum=dept_ids),
+) -> SalesResponse:
+    """Predicts sales for a specific store and item on a given date."""
+    # Validate the input date
     if not validate_date(ds):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
-    # Extract day, month, and year from ds
-    date_obj = datetime.strptime(ds, '%Y-%m-%d')
-    day = date_obj.day
-    month = date_obj.month
-    year = date_obj.year
-
-    # Prepare input data for the predictive model
+    # Create a DataFrame from the input data
     input_data = pd.DataFrame({
-        'day': [day],
-        'month': [month],
-        'year': [year],
         'item_id': [item_id],
         'store_id': [store_id],
         'state_id': [state_id],
         'cat_id': [cat_id],
-        'dept_id': [dept_id],
+        'dept_id': [dept_id]
     })
-    
-    model = app.state.models['predictive_lgbm']
-    predictions = predict_sales(model, input_data)
-    
-    # Return predictions in a structured format
-    return {"predicted_sales": predictions}
 
-# Endpoint for forecasting national sales (GET request)
+    try:
+        # Predict sales using the loaded LightGBM model
+        predictions = predict_sales(app.state.models['predictive_lgbm'], input_data)
+        return SalesResponse(sales=[Sale(id=i, amount=pred) for i, pred in enumerate(predictions)])
+
+    except Exception as e:
+        logger.error(f"Error predicting sales for item: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error predicting sales.")
+
+# Endpoint for forecasting total sales for the next 7 days (GET request)
 @app.get("/sales/national/")
-async def forecast_national_sales(date: str = Query(..., description="Start date for the forecast in YYYY-MM-DD format")):
-    """Forecast national sales for the next 7 days starting from the provided date."""
+async def forecast_national_sales(date: str = Query(..., description="Start date for forecasting in YYYY-MM-DD format")):
+    """Forecasts the total sales for the next 7 days starting from the input date."""
+    # Validate the input date
     if not validate_date(date):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
     
-    forecasted_sales = forecast_sales(app.state.models['prophet'], date)
-    return forecasted_sales
+    # Load the Prophet model for national sales
+    prophet_model = app.state.models['prophet']
 
-# Main function to run the FastAPI application
+    try:
+        forecast_data = forecast_sales(prophet_model, date)
+        return {"forecasts": forecast_data}
+
+    except Exception as e:
+        logger.error(f"Error forecasting national sales: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error forecasting national sales.")
+
+# Entry point for running the FastAPI application
 if __name__ == "__main__":
-    # Run the application using Uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # Start the server with UVICORN
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -180,7 +180,7 @@ def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
         raise ValueError("Model or scaler not loaded")
 
     # Ensure the input data is properly formatted
-    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id','day','month','year']  
+    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id', 'day', 'month', 'year']
     missing_columns = [col for col in required_columns if col not in input_data.columns]
     
     if missing_columns:
@@ -201,7 +201,35 @@ def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
     # Perform prediction using the scaled input data
     predictions = model.predict(X_scaled)
 
-    return predictions.tolist()  
+    return predictions.tolist()
+
+def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
+    # Convert categorical features to numerical (example using hash encoding)
+    item_id_encoded = hash(item_id) % 1000  # Example encoding, replace with actual method
+    store_id_encoded = hash(store_id) % 100  # Example encoding
+    state_id_encoded = hash(state_id) % 50  # Example encoding
+    cat_id_encoded = hash(cat_id) % 20  # Example encoding
+    dept_id_encoded = hash(dept_id) % 10  # Example encoding
+    
+    # Extract date features
+    date_obj = datetime.strptime(date, "%Y-%m-%d")
+    day = date_obj.day
+    month = date_obj.month
+    year = date_obj.year
+    
+    # Create input array with all necessary features
+    input_data = np.array([[
+        item_id_encoded,
+        store_id_encoded,
+        state_id_encoded,
+        cat_id_encoded,
+        dept_id_encoded,
+        day,
+        month,
+        year
+    ]])
+    
+    return input_data  # Return as a 2D array
 
 # Forecast function for total sales across all stores and items
 def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:
@@ -228,11 +256,11 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
 @app.get("/sales/stores/items/")
 async def predict_item_sales(
     date: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
-    item_id: str = Query(..., description="Item ID for the product", enum=item_ids),
-    store_id: str = Query(..., description="Store ID for the specific location", enum=store_ids),
-    state_id: str = Query(..., description="State ID for the location", enum=state_ids),
-    cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),
-    dept_id: str = Query(..., description="Department ID for the product", enum=dept_ids),
+    item_id: str = Query(..., description="Item ID for the product"),
+    store_id: str = Query(..., description="Store ID for the specific location"),
+    state_id: str = Query(..., description="State ID for the location"),
+    cat_id: str = Query(..., description="Category ID for the product"),
+    dept_id: str = Query(..., description="Department ID for the product"),
 ) -> SalesResponse:
     """Predicts sales for a specific store and item on a given date."""
     
@@ -240,28 +268,13 @@ async def predict_item_sales(
     if not validate_date(date):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
     
-    # Parse the date and extract features
-    date_obj = datetime.strptime(date, "%Y-%m-%d")
-    day = date_obj.day
-    month = date_obj.month
-    year = date_obj.year
-    
-    # Create a DataFrame from the input data, including all expected features
-    input_data = pd.DataFrame({
-        'item_id': [item_id],
-        'store_id': [store_id],
-        'state_id': [state_id],
-        'cat_id': [cat_id],
-        'dept_id': [dept_id],
-        'day': [day],       # Add day feature
-        'month': [month],   # Add month feature
-        'year': [year]      # Add year feature
-    })
+    # Create a DataFrame from the input data
+    input_data = prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date)
 
     try:
         # Predict sales using the loaded LightGBM model
-        model = app.state.models['predictive_lgbm']
-        predictions = predict_sales(model, input_data)
+        model_info = app.state.models['predictive_lgbm']
+        predictions = predict_sales(model_info, pd.DataFrame(input_data))
 
         # Prepare response
         return SalesResponse(sales=[Sale(id=i, amount=pred) for i, pred in enumerate(predictions)])
@@ -269,7 +282,6 @@ async def predict_item_sales(
     except Exception as e:
         logger.error(f"Error predicting sales for item: {str(e)}")
         raise HTTPException(status_code=500, detail="Error predicting sales.")
-
 
 # Endpoint for forecasting total sales for the next 7 days (GET request)
 @app.get("/sales/national/")

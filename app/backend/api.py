@@ -240,17 +240,18 @@ async def predict_item_sales(
     dept_id: str = Query(..., description="Department ID for the product", enum=dept_ids),
 ) -> SalesResponse:
     """Predicts sales for a specific store and item on a given date."""
+    
     # Validate the input date
     if not validate_date(date):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-
+    
     # Parse the date and extract features
     date_obj = datetime.strptime(date, "%Y-%m-%d")
     day = date_obj.day
     month = date_obj.month
     year = date_obj.year
     
-    # Create a DataFrame from the input data
+    # Create a DataFrame from the input data, including all expected features
     input_data = pd.DataFrame({
         'item_id': [item_id],
         'store_id': [store_id],
@@ -264,12 +265,16 @@ async def predict_item_sales(
 
     try:
         # Predict sales using the loaded LightGBM model
-        predictions = predict_sales(app.state.models['predictive_lgbm'], input_data)
+        model = app.state.models['predictive_lgbm']
+        predictions = predict_sales(model, input_data)
+
+        # Prepare response
         return SalesResponse(sales=[Sale(id=i, amount=pred) for i, pred in enumerate(predictions)])
 
     except Exception as e:
         logger.error(f"Error predicting sales for item: {str(e)}")
         raise HTTPException(status_code=500, detail="Error predicting sales.")
+
 
 # Endpoint for forecasting total sales for the next 7 days (GET request)
 @app.get("/sales/national/")

@@ -54,7 +54,7 @@ class SalesResponse(BaseModel):
 
 def load_model(model_path: str):
     """Load a prediction model from a file."""
-    with open(model_path, 'rb') as f:  # Open the file in binary read mode
+    with open(model_path, 'rb') as f:
         return pickle.load(f)
         
 def validate_date(date_str: str) -> bool:
@@ -230,65 +230,85 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
         train_forecast = model.predict(future_dates)
 
         # Filter the forecast to only include the new future dates
-        output = train_forecast[train_forecast['ds'] >= forecast_start_date][['ds', 'yhat', 'yhat_lower', 'yhat_upper']].to_dict(orient='records')
+        forecasted_sales = [
+            {"date": future_dates['ds'].iloc[i].date(), "forecast": train_forecast['yhat'].iloc[i]}
+            for i in range(-period, 0)
+        ]
 
-        return output
+        return forecasted_sales
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
+        logger.error(f"Error during forecasting: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error during forecasting")
 
-from datetime import datetime
-
-# Endpoint for predicting sales for a specific item in a store (GET request)
-@app.get("/sales/stores/items/")
-async def predict_item_sales(
-    ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
-    item_id: str = Query(..., description="Item ID for the product", enum=item_ids),
-    store_id: str = Query(..., description="Store ID for the store", enum=store_ids),
-    state_id: str = Query(..., description="State ID for the store", enum=state_ids),
-    cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),  
-    dept_id: str = Query(..., description="Department ID for the store", enum=dept_ids)
-):
-    """Predict sales for a specific item in a specific store."""
-    if not validate_date(ds):
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-
-    # Extract day, month, and year from ds
-    date_obj = datetime.strptime(ds, '%Y-%m-%d')
-    day = date_obj.day
-    month = date_obj.month
-    year = date_obj.year
-
-    # Prepare input data for the predictive model
-    input_data = pd.DataFrame({
-        'date': [ds],
-        'day': [day],
-        'month': [month],
-        'year': [year],
-        'item_id': [item_id],
-        'store_id': [store_id],
-        'state_id': [state_id],
-        'cat_id': [cat_id],
-        'dept_id': [dept_id],
-    })
-    
-    model = app.state.models['predictive_lgbm']
-    predictions = predict_sales(model, input_data)
-    
-    # Return predictions in a structured format
-    return {"predicted_sales": predictions}
-
-# Endpoint for forecasting national sales (GET request)
-@app.get("/sales/national/")
-async def forecast_national_sales(date: str = Query(..., description="Start date for the forecast in YYYY-MM-DD format")):
-    """Forecast national sales for the next 7 days starting from the provided date."""
+# Endpoint for forecasting national sales
+@app.get(
+    "/sales/national/",
+    response_model=List[Dict[str, Any]],
+    summary="Forecast national sales",
+    response_description="Returns a list of forecasted national sales for the next 7 days.",
+)
+async def get_national_sales(date: str):
+    """Forecast national sales for the next 7 days."""
     if not validate_date(date):
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-    
-    forecasted_sales = forecast_sales(app.state.models['prophet'], date)
-    return forecasted_sales
+        raise HTTPException(status_code=400, detail="Invalid date format. Please use YYYY-MM-DD.")
 
-# Main function to run the FastAPI application
+    model_name = "prophet"  # Adjust according to the model you want to use
+    model = app.state.models.get(model_name)
+    
+    if not model:
+        raise HTTPException(status_code=500, detail=f"{model_name} model is not loaded.")
+
+    try:
+        forecasted_sales = forecast_sales(model, date)
+        return forecasted_sales
+
+    except Exception as e:
+        logger.error(f"Error in get_national_sales: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error during national sales forecasting")
+
+# Endpoint for predicting sales for a specific store and item
+@app.get(
+    "/sales/stores/items/",
+    response_model=SalesResponse,
+    summary="Predict sales for a specific store and item",
+    response_description="Returns predicted sales for a specific store-item combination.",
+)
+async def predict_store_item_sales(
+    date: str,
+    store_id: int = Query(..., title="Store ID", description="ID of the store"),
+    item_id: int = Query(..., title="Item ID", description="ID of the item"),
+    state_id: int = Query(..., title="State ID", description="ID of the state"),
+    cat_id: int = Query(..., title="Category ID", description="ID of the category"),
+    dept_id: int = Query(..., title="Department ID", description="ID of the department"),
+):
+    """Predict sales for a specific store and item on a given date."""
+    if not validate_date(date):
+        raise HTTPException(status_code=400, detail="Invalid date format. Please use YYYY-MM-DD.")
+
+    model_name = "predictive_lgbm"  # Adjust according to the model you want to use
+    model_info = app.state.models.get(model_name)
+    
+    if not model_info:
+        raise HTTPException(status_code=500, detail=f"{model_name} model is not loaded.")
+
+    input_data = pd.DataFrame([{
+        'item_id': item_id,
+        'store_id': store_id,
+        'state_id': state_id,
+        'cat_id': cat_id,
+        'dept_id': dept_id
+    }])
+
+    try:
+        predictions = predict_sales(model_info, input_data)
+        sales = [Sale(id=i+1, amount=predictions[i], date=date) for i in range(len(predictions))]
+        return SalesResponse(sales=sales)
+
+    except Exception as e:
+        logger.error(f"Error in predict_store_item_sales: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error during sales prediction for store-item combination")
+
+# Run the application
 if __name__ == "__main__":
-    # Run the application using Uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

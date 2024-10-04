@@ -169,19 +169,25 @@ async def health_check():
     return HealthCheck(status="healthy")
 
 # Prediction function for sales using the predictive model
-def predict_sales(model, input_data: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Make a prediction using the predictive_lgbm model."""
+def predict_sales(model, input_data: pd.DataFrame) -> List[float]:
+    """Make a prediction using the LightGBM model."""
     if model is None:
-        raise HTTPException(status_code=500, detail="Model not loaded")
+        raise ValueError("Model not loaded")
 
-    try:
-        # Perform prediction using the input data
-        predictions = model.predict(input_data)
-        
-        # Construct output format as a list of dictionaries
-        output = [{'ds': ds, 'yhat': pred} for ds, pred in zip(input_data['ds'], predictions)]
-        
-        return output
+    # Ensure the input data is properly formatted
+    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id']  # Add other feature columns as needed
+    missing_columns = [col for col in required_columns if col not in input_data.columns]
+    
+    if missing_columns:
+        raise ValueError(f"Missing columns in input data: {', '.join(missing_columns)}")
+    
+    # Prepare input data (make sure to preprocess it similarly to the training data)
+    X = input_data[required_columns]  # Assuming the features match those used in training
+
+    # Perform prediction using the input data
+    predictions = model.predict(X)
+
+    return predictions.tolist()  # Return predictions as a list
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
@@ -241,7 +247,8 @@ async def predict_item_sales(
     })
     model = app.state.models['predictive_lgbm']
     predictions = predict_sales(model, input_data)
-    return {"prediction": predictions[0]['yhat']}
+    # Return predictions in a structured format
+    return {"predicted_sales": predictions}
 
 # Endpoint for forecasting national sales (GET request)
 @app.get("/sales/national/")

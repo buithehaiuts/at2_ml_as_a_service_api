@@ -9,6 +9,7 @@ import uvicorn
 import logging
 from datetime import datetime, timedelta
 import json
+import lightgbm 
 
 # Set up logging
 logger = logging.getLogger(__name__)

@@ -5,6 +5,7 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import altair as alt
+import lightgbm 
 
 # Set the title of the application
 st.title("Sales Prediction and Forecasting App")
@@ -37,83 +38,6 @@ if selected_tab == "API Health Check":
                 st.error("API Status: **Unhealthy**")
         except requests.exceptions.RequestException as e:
             st.error(f"Error: {e}")
-
-# # --- Sales Prediction Tab ---
-# elif selected_tab == "Sales Prediction":
-#     st.header("Sales Prediction")
-
-#     # Input fields for sales prediction
-#     date_input = st.date_input("Select a date for prediction", value=datetime.today())
-
-#     # Dropdown for store ID selection
-#     store_id = st.selectbox("Select Store ID", 
-#                              ['CA_1', 'CA_2', 'CA_3', 'CA_4', 
-#                               'TX_1', 'TX_2', 'TX_3', 
-#                               'WI_1', 'WI_2', 'WI_3'])
-
-#     # Dropdown for item ID selection using loaded item IDs
-#     item_id = st.selectbox("Select Item ID", item_ids)
-
-#     # Model type:
-#     model_list = ['prophet', 'prophet_event', 'prophet_holiday', 'prophet_month']
-#     model_type = st.selectbox("Select Model Type", model_list)
-
-#     # Button to trigger sales prediction
-#     if st.button("Predict Sales"):
-#         # Send a GET request to the sales prediction API endpoint
-#         try:
-#             # Correctly format the GET request with query parameters
-#             prediction_url = f"{base_url}/sales/stores/items/?ds={date_input}&item_id={item_id}&store_id={store_id}&model_type={model_type}"
-            
-#             # Send the GET request
-#             prediction_response = requests.get(prediction_url)
-            
-#             # Handle response
-#             if prediction_response.status_code == 200:
-#                 prediction_data = prediction_response.json()
-#                 st.write("API Response:", prediction_data)  # Debug line
-                
-#                 # Check if prediction data is valid
-#                 if 'prediction' in prediction_data and prediction_data['prediction']:
-#                     # Access the predicted value correctly
-#                     predicted_value = prediction_data['prediction'][0]['yhat']  # Accessing 'yhat'
-#                     st.success(f"Predicted Sales: ${predicted_value:.2f}")
-#                 else:
-#                     st.error("No prediction data available.")
-#                     if 'error' in prediction_data:
-#                         st.error(f"API Error: {prediction_data['error']}")
-#             else:
-#                 st.error("Failed to retrieve prediction data.")
-#                 st.json(prediction_response.json())
-#         except requests.exceptions.RequestException as e:
-#             st.error(f"Error: {e}")
-
-# # --- Sales Forecasting Tab ---
-# elif selected_tab == "Sales Forecasting":
-#     st.header("Sales Forecasting")
-    
-#     # Input field for sales forecasting
-#     forecast_start_date = st.date_input("Select a forecast start date", value=datetime.today())
-
-#     # Button to trigger sales forecasting
-#     if st.button("Forecast Sales"):
-#         # Send a request to the sales forecasting API endpoint
-#         try:
-#             # Corrected URL for the forecast
-#             forecast_url = f"{base_url}/sales/national/"
-#             params = {"start_date": forecast_start_date.strftime("%Y-%m-%d")}  # Updated key
-#             forecast_response = requests.get(forecast_url, params=params)
-            
-#             # Handle response
-#             if forecast_response.status_code == 200:
-#                 forecast_data = forecast_response.json()
-#                 st.success("Forecasted Sales for the Next 7 Days:")
-#                 st.json(forecast_data)  # Display the JSON response
-#             else:
-#                 st.error("Failed to retrieve forecast data.")
-#                 st.json(forecast_response.json())
-#         except requests.exceptions.RequestException as e:
-#             st.error(f"Error: {e}")
 
 
 # --- Sales Prediction Tab ---

@@ -68,7 +68,7 @@ async def startup_event():
         'prophet_event': 'models/prophet_event.pkl', # Forecasting model
         'prophet_holiday': 'models/prophet_holiday.pkl',# Forecasting model
         'prophet_month': 'models/prophet_month.pkl', # Forecasting model
-        'prophet_predictive_model': 'models/prophet_predictive_model.pkl'  # Used for predicting specific sales
+        'predictive_lgbm': 'models/predictive_lgbm.pkl'  # Used for predicting specific sales
     }
     for model_name, model_path in model_files.items():
         logger.info(f"Attempting to load model from: {model_path}")  # Log the model loading path
@@ -116,7 +116,10 @@ async def read_root():
                 "input_parameters": {
                     "date": "YYYY-MM-DD",
                     "store_id": "Store ID",
-                    "item_id": "Item ID"
+                    "item_id": "Item ID",
+                    "state_id": "State ID",
+                    "cat_id": "Category ID",
+                    "dept_id": "Department ID"
                 },
                 "output_format": {"prediction": 19.72}
             }
@@ -191,6 +194,9 @@ async def predict_item_sales(
     ds: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
     item_id: str = Query(..., description="Item ID for the product"),
     store_id: str = Query(..., description="Store ID for the store"),
+    state_id: str = Query(..., description="State ID for the store"),
+    cat_id = Query(..., description="Category ID for the product"),
+    dept_id = str = Query(..., description="Department ID for the store"),
 ):
     """Predict sales for a specific item in a specific store."""
     if not validate_date(ds):
@@ -200,7 +206,11 @@ async def predict_item_sales(
     input_data = pd.DataFrame({
         'ds': [ds],  # Date
         'item_id': [item_id],  # Item ID
-        'store_id': [store_id]  # Store ID
+        'store_id': [store_id]  # Store ID,
+        'state_id : [state_id],
+        'cat_id': [cat_id],
+        'dept_id': [cat_id]
+        
     })
 
     # Use the prophet_predictive_model for predictions

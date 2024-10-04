@@ -54,13 +54,9 @@ class SalesResponse(BaseModel):
 
 def load_model(model_path: str):
     """Load a prediction model from a file."""
-    try:
-        with open(model_path, 'rb') as f:  # Open the file in binary read mode
-            return pickle.load(f)
-    except Exception as e:
-        logger.error(f"Error loading model from {model_path}: {str(e)}")
-        return None
-
+    with open(model_path, 'rb') as f:  # Open the file in binary read mode
+        return pickle.load(f)
+        
 def validate_date(date_str: str) -> bool:
     """Validate the date format to ensure it follows YYYY-MM-DD."""
     try:
@@ -187,10 +183,7 @@ def predict_sales(model, input_data: pd.DataFrame) -> List[float]:
     # Perform prediction using the input data
     predictions = model.predict(X)
 
-    return predictions.tolist()  # Return predictions as a list
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    return predictions.tolist()  # Return predictions as a list        
 
 # Forecast function for total sales across all stores and items
 def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:

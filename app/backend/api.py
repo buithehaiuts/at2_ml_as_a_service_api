@@ -92,10 +92,10 @@ async def startup_event():
 
     # Load encoders
     encoder_files = {
-        'item_id': 'app/backend/item_id_encoder.pkl',
-        'store_id': 'app/backend/store_id_encoder.pkl',
-        'state_id': 'app/backend/state_id_encoder.pkl',
-        'cat_id': 'app/backend/cat_id_encoder.pkl',
+        'item_id': 'app/backend/item_encoder.pkl',
+        'store_id': 'app/backend/store_encoder.pkl',
+        'state_id': 'app/backend/state_encoder.pkl',
+        'cat_id': 'app/backend/cat_id.pkl',
         'dept_id': 'app/backend/dept_id_encoder.pkl'
     }
 

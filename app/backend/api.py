@@ -185,7 +185,7 @@ def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
         raise ValueError("Model or scaler not loaded")
 
     # Ensure the input data is properly formatted
-    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id']  
+    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id','date','month','year']  
     missing_columns = [col for col in required_columns if col not in input_data.columns]
     
     if missing_columns:

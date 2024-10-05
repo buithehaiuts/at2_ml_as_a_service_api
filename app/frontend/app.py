@@ -7,7 +7,7 @@ import json
 import numpy as np
 
 # Load the id_values.json file
-with open('backend/id_values.json', 'r') as f:
+with open('app/backend/id_values.json', 'r') as f:
     id_values = json.load(f)
 
 # Extracting values for dropdowns from JSON

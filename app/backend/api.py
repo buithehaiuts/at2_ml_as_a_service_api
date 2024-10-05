@@ -10,6 +10,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from lightgbm import LGBMRegressor
+import numpy as np
 
 # Set up logging for better traceability
 logging.basicConfig(level=logging.INFO)

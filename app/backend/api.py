@@ -180,32 +180,25 @@ def predict_sales(scaler,model, input_data):
     return predicted_sales if isinstance(predicted_sales, np.float64) else predicted_sales.tolist()
 
 def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
-    # Convert categorical features to numerical (example using hash encoding)
-    item_id_encoded = hash(item_id) % 1000  # Example encoding, replace with actual method
-    store_id_encoded = hash(store_id) % 100  # Example encoding
-    state_id_encoded = hash(state_id) % 50  # Example encoding
-    cat_id_encoded = hash(cat_id) % 20  # Example encoding
-    dept_id_encoded = hash(dept_id) % 10  # Example encoding
-    
-    # Extract date features
+    # Parse the date and extract day, month, year
     date_obj = datetime.strptime(date, "%Y-%m-%d")
     day = date_obj.day
     month = date_obj.month
     year = date_obj.year
+
+    # Create a DataFrame for input
+    input_data = pd.DataFrame({
+        'item_id': [item_id],
+        'store_id': [store_id],
+        'state_id': [state_id],
+        'cat_id': [cat_id],
+        'dept_id': [dept_id],
+        'day': [day],
+        'month': [month],
+        'year': [year]
+    })
     
-    # Create input array with all necessary features
-    input_data = np.array([
-        item_id_encoded,
-        store_id_encoded,
-        state_id_encoded,
-        cat_id_encoded,
-        dept_id_encoded,
-        year,
-        month,
-        day
-    ])
-    
-    return input_data.reshape(1, -1)  # Return as a 2D array
+    return input_data
 
 # Forecast function for total sales across all stores and items
 def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:

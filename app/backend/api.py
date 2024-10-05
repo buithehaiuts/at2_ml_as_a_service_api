@@ -49,10 +49,6 @@ class Sale(BaseModel):
     amount: float
     date: str
 
-class SalesResponse(BaseModel):
-    """Response model containing a list of sales."""
-    sales: List[Sale]
-
 def load_model(model_path: str):
     """Load a prediction model from a file."""
     with open(model_path, 'rb') as f:
@@ -230,9 +226,7 @@ async def predict_item_sales(
     state_id: str = Query(..., description="State ID for the location", enum=state_ids),
     cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),
     dept_id: str = Query(..., description="Department ID for the product", enum=dept_ids),
-) -> SalesResponse:
-    """Predicts sales for a specific store and item on a given date."""
-    
+
     # Validate the input date
     if not validate_date(date):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
@@ -248,7 +242,7 @@ async def predict_item_sales(
         predictions = predict_sales(scaler,model, input_data)
 
         # Prepare response
-        return SalesResponse(sales=[Sale(id=i, amount=pred) for i, pred in enumerate(predictions)])
+        return predictions
 
     except Exception as e:
         logger.error(f"Error predicting sales for item: {str(e)}")

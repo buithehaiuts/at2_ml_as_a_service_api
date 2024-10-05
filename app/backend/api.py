@@ -271,14 +271,21 @@ async def predict_item_sales(
 
 # Endpoint for forecasting total sales for the next 7 days (GET request)
 @app.get("/sales/national/")
-async def forecast_national_sales(date: str = Query(..., description="Start date for forecasting in YYYY-MM-DD format")):
+async def forecast_national_sales(
+    date: str = Query(..., description="Start date for forecasting in YYYY-MM-DD format"),
+    model_type: str = Query("prophet", description="Type of model to use for forecasting. Options: 'prophet', 'prophet_event', 'prophet_holiday', 'prophet_month'.")
+):
     """Forecasts the total sales for the next 7 days starting from the input date."""
     # Validate the input date
     if not validate_date(date):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-    
+
+    # Validate the model_type
+    if model_type not in app.state.models:
+        raise HTTPException(status_code=400, detail=f"Invalid model type. Available options are: {', '.join(app.state.models.keys())}.")
+        
     # Load the Prophet model for national sales
-    prophet_model = app.state.models['prophet']
+    prophet_model = app.state.models[model_type]
 
     try:
         forecast_data = forecast_sales(prophet_model, date)

@@ -177,7 +177,7 @@ def predict_sales(scaler,model, input_data):
     input_data_scaled = scaler.transform(input_data)
     # Prepare input data (make sure to preprocess it similarly to the training data)
     predicted_sales = model.predict(input_data_scaled)
-    return predicted_sales[0]
+    return predicted_sales if isinstance(predictions, np.float64) else predictions.tolist()
 
 def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
     # Convert categorical features to numerical (example using hash encoding)
@@ -245,7 +245,7 @@ async def predict_item_sales(
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
     
     # Create a DataFrame from the input data
-    input_data = prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date)
+    input_data = self.prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date)
 
     try:
         # Predict sales using the loaded LightGBM model

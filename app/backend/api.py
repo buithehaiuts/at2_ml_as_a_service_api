@@ -188,6 +188,8 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
         'year': [year]
     })
     
+    expected_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id', 'day', 'month', 'year']
+    input_data = input_data[expected_columns] 
     return input_data
 
 # Forecast function for total sales across all stores and items

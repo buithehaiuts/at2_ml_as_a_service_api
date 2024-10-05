@@ -194,16 +194,16 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
     year = date_obj.year
     
     # Create input array with all necessary features
-    input_data = np.array([[
+    input_data = np.array([
         item_id_encoded,
         store_id_encoded,
         state_id_encoded,
         cat_id_encoded,
         dept_id_encoded,
-        day,
+        year,
         month,
-        year
-    ]])
+        day
+    ])
     
     return input_data.reshape(1, -1)  # Return as a 2D array
 

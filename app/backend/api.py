@@ -245,7 +245,7 @@ async def predict_item_sales(
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
     
     # Create a DataFrame from the input data
-    input_data = self.prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date)
+    input_data = prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date)
 
     try:
         # Predict sales using the loaded LightGBM model

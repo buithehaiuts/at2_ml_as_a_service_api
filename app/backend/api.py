@@ -107,8 +107,8 @@ async def startup_event():
         'item_encoder': Path('app/backend/item_encoder.pkl').resolve(),
         'store_encoder': Path('app/backend/store_encoder.pkl').resolve(),
         'state_encoder': Path('app/backend/state_encoder.pkl').resolve(),
-        'cat_encoder': Path('app/backend/cat_encoder.pkl').resolve(),
-        'dept_encoder': Path('app/backend/dept_encoder.pkl').resolve()
+        'cat_encoder': Path('app/backend/cat_id.pkl').resolve(),
+        'dept_encoder': Path('app/backend/dept_id_encoder.pkl').resolve()
     }
 
     for encoder_name, encoder_path in encoder_files.items():

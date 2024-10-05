@@ -173,9 +173,7 @@ async def health_check():
     return HealthCheck(status="healthy")
 
 # Prediction function for sales using the predictive model
-def predict_sales(model_info: dict, input_data):
-    """Make a prediction using the LightGBM model and scaler."""
-    model, scaler = model_info  # Unpack model and scaler from the tuple
+def predict_sales(scaler,model, input_data):
     input_data_scaled = scaler.transform(input_data)
     # Prepare input data (make sure to preprocess it similarly to the training data)
     predicted_sales = model.predict(input_data_scaled)
@@ -252,7 +250,9 @@ async def predict_item_sales(
     try:
         # Predict sales using the loaded LightGBM model
         model_info = app.state.models['predictive_lgbm']
-        predictions = predict_sales(model_info, input_data)
+        model=model_info['model']
+        scaler=model_info['scaler']
+        predictions = predict_sales(scaler,model, input_data)
 
         # Prepare response
         return SalesResponse(sales=[Sale(id=i, amount=pred) for i, pred in enumerate(predictions)])

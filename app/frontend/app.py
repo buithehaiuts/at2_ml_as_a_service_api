@@ -50,49 +50,45 @@ elif selected_tab == "Sales Prediction":
         state_ids = dropdowns.get("state_id", [])
         cat_ids = dropdowns.get("cat_id", [])
         dept_ids = dropdowns.get("dept_id", [])
-        item_ids = dropdowns.get("item_id", [])  # Assuming item_id also comes from the API
+        item_ids = dropdowns.get("item_id", [])
 
-        # Dropdown for store ID selection
-        store_id = st.selectbox("Select Store ID", store_ids)
+        # Ensure dropdowns have values
+        if not store_ids or not item_ids or not state_ids or not cat_ids or not dept_ids:
+            st.error("Error: Dropdown data is incomplete. Please check the API.")
+        else:
+            # Dropdowns for selections
+            store_id = st.selectbox("Select Store ID", store_ids)
+            item_id = st.selectbox("Select Item ID", item_ids)
+            state_id = st.selectbox("Select State ID", state_ids)
+            cat_id = st.selectbox("Select Category ID", cat_ids)
+            dept_id = st.selectbox("Select Department ID", dept_ids)
 
-        # Dropdown for item ID selection
-        item_id = st.selectbox("Select Item ID", item_ids)
-
-        # Dropdown for state ID selection
-        state_id = st.selectbox("Select State ID", state_ids)
-
-        # Dropdown for category ID selection
-        cat_id = st.selectbox("Select Category ID", cat_ids)
-
-        # Dropdown for department ID selection
-        dept_id = st.selectbox("Select Department ID", dept_ids)
-
-        # Button to trigger sales prediction
-        if st.button("Predict Sales"):
-            # Send a GET request to the sales prediction API endpoint
-            try:
-                prediction_url = f"{base_url}/sales/stores/items/"
-                # Prepare the parameters for the API call
-                params = {
-                    "date": date_str,
-                    "item_id": item_id,
-                    "store_id": store_id,
-                    "state_id": state_id,
-                    "cat_id": cat_id,
-                    "dept_id": dept_id
-                }
-                
-                # Send the GET request with parameters
-                prediction_response = requests.get(prediction_url, params=params)
-                
-                if prediction_response.status_code == 200:
-                    prediction_data = prediction_response.json()
-                    st.write("Predicted Sales Data:")
-                    st.write(prediction_data)
-                else:
-                    st.error("Error in fetching sales prediction.")
-            except requests.exceptions.RequestException as e:
-                st.error(f"Error: {e}")
+            # Button to trigger sales prediction
+            if st.button("Predict Sales"):
+                # Send a GET request to the sales prediction API endpoint
+                try:
+                    prediction_url = f"{base_url}/sales/stores/items/"
+                    params = {
+                        "date": date_str,
+                        "item_id": item_id,
+                        "store_id": store_id,
+                        "state_id": state_id,
+                        "cat_id": cat_id,
+                        "dept_id": dept_id
+                    }
+                    
+                    # Send the GET request with parameters
+                    prediction_response = requests.get(prediction_url, params=params)
+                    
+                    if prediction_response.status_code == 200:
+                        prediction_data = prediction_response.json()
+                        st.write("Predicted Sales Data:")
+                        st.write(prediction_data)
+                    else:
+                        st.error("Error in fetching sales prediction.")
+                        st.json(prediction_response.json())  # Show error details
+                except requests.exceptions.RequestException as e:
+                    st.error(f"Error: {e}")
 
     except requests.exceptions.RequestException as e:
         st.error(f"Error fetching dropdown data: {e}")
@@ -121,7 +117,6 @@ elif selected_tab == "Sales Forecasting":
             if forecast_response.status_code == 200:
                 forecast_data = forecast_response.json()
                 
-                # Assuming the response structure is in the correct format
                 if 'forecast' in forecast_data:
                     forecast_df = pd.DataFrame(forecast_data['forecast'])
                     forecast_df['date'] = pd.to_datetime(forecast_df['date']).dt.date
@@ -154,7 +149,7 @@ elif selected_tab == "Sales Forecasting":
                     st.error("No forecast data available.")
             else:
                 st.error("Failed to retrieve forecast data.")
-                st.json(forecast_response.json())
+                st.json(forecast_response.json())  # Show error details
         except requests.exceptions.RequestException as e:
             st.error(f"Error: {e}")
 

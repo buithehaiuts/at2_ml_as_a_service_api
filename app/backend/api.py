@@ -43,12 +43,6 @@ class HealthCheck(BaseModel):
     """Model for health check response."""
     status: str
 
-class Sale(BaseModel):
-    """Model for representing a sale."""
-    id: int
-    amount: float
-    date: str
-
 def load_model(model_path: str):
     """Load a prediction model from a file."""
     with open(model_path, 'rb') as f:

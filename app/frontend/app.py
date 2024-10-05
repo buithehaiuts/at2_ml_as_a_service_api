@@ -78,12 +78,16 @@ elif selected_tab == "Sales Prediction":
         3. **Predict Sales:**
         - Click the **"Predict Sales"** button to initiate the prediction process. The application will use the selected parameters to fetch the sales prediction.
 
-        4. **View the Results:**
-        - The predicted sales value will be displayed as a metric, showing the expected sales for the selected item and date.
+       4. **View the Results:**
+        - After generating the forecast, the results will be displayed in a table format, showing the predicted sales and lower and upper confidence intervals (`yhat_lower` and `yhat_upper`). 
+        - These intervals provide a range of uncertainty around the predictions:
+            - **`yhat`:** This is the predicted value (sales) at a given point in time.
+            - **`yhat_lower`:** This indicates the lower bound of the confidence interval for the prediction, representing the minimum expected sales value within a specified level of certainty.
+            - **`yhat_upper`:** This represents the upper bound of the confidence interval for the prediction, indicating the maximum expected sales value within the same level of certainty.
+            
+        5. **Visualize the Forecast:**
+        - A chart will be generated to visualize the forecasted sales alongside the confidence intervals, allowing you to easily assess the predicted range of sales values.
 
-        **Important Notes:**
-        - Ensure you have a stable internet connection, as the prediction data is retrieved from an external API.
-        - If you encounter any errors or unexpected results, please check the console for messages and try again.
         """)
 
     if subtab == "Prediction":
@@ -179,13 +183,17 @@ elif selected_tab == "Sales Forecasting":
         - Click the **"Forecast Sales"** button to initiate the prediction process. The application will call the relevant forecasting model and return the predicted sales for the next seven days.
 
         4. **View the Results:**
-        - After generating the forecast, the results will be displayed in a table format, showing the predicted sales along with lower and upper confidence intervals. 
-
+        - After generating the forecast, the results will be displayed in a table, showing the predicted sales and lower and upper confidence intervals. 
+         - These intervals provide a range of uncertainty around the predictions:
+            - **`sales`:** This is the predicted value (sales) at a given point in time.
+            - **`yhat_lower`:** This indicates the lower bound of the confidence interval for the prediction, representing the minimum expected sales value within a specified level of certainty.
+            - **`yhat_upper`:** This represents the upper bound of the confidence interval for the prediction, indicating the maximum expected sales value within the same level of certainty.
+        
         5. **Visualize the Forecast:**
-        - A chart will be generated to visualize the forecasted sales alongside the confidence intervals, allowing you to easily assess the predicted range of sales values.
+        - A chart will be generated to visualize the forecasted sales alongside the confidence intervals, allowing you to assess the predicted range of sales values easily.
 
         **Important Notes:**
-        - Ensure that you have a stable internet connection, as the forecast data is retrieved from an external API.
+        - Please ensure you have a stable internet connection, as the forecast data is retrieved from an external API.
         - If you encounter any errors or unexpected results, please check the console for any messages and try again.
 
         Happy forecasting!

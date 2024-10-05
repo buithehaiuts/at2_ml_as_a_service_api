@@ -183,6 +183,7 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
     day = date_obj.day
     month = date_obj.month
     year = date_obj.year
+    
 
     # Create a DataFrame for input
     input_data = pd.DataFrame({
@@ -195,7 +196,12 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
         'month': [month],
         'year': [year]
     })
-
+    item_encoder=pickle.load('app/backend/item_encoder.pkl')
+    store_encoder=pickle.load('app/backend/store_encoder.pkl')
+    state_encoder=pickle.load('app/backend/state_encoder.pkl')
+    cat_encoder=pickle.load('app/backend/cat_encoder.pkl')
+    dept_encoder=pickle.load('app/backend/dept_encoder.pkl')
+    
     new_input_data['item_id'] = safe_transform(item_encoder, input_data['item_id'])
     new_input_data['store_id'] = safe_transform(store_encoder, input_data['store_id'])
     new_input_data['state_id'] = safe_transform(state_encoder, input_data['state_id'])

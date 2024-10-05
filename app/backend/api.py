@@ -212,7 +212,6 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
     input_data['dept_id'] = safe_transform(app.state.encoders['dept_encoder'], input_data['dept_id'])
 
     expected_columns = ['item_id', 'store_id', 'dept_id', 'cat_id', 'state_id', 'day', 'month', 'year']
-    input_data[numerical_columns] = scaler.transform(input_data[expected_columns])
     return input_data
 
 # Forecast function for total sales across all stores and items

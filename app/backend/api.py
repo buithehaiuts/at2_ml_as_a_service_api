@@ -205,15 +205,15 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
     })
     
     # Transform categorical columns using encoders from app state
-    new_input_data['item_id'] = safe_transform(app.state.encoders['item_encoder'], input_data['item_id'])
-    new_input_data['store_id'] = safe_transform(app.state.encoders['store_encoder'], input_data['store_id'])
-    new_input_data['state_id'] = safe_transform(app.state.encoders['state_encoder'], input_data['state_id'])
-    new_input_data['cat_id'] = safe_transform(app.state.encoders['cat_encoder'], input_data['cat_id'])
-    new_input_data['dept_id'] = safe_transform(app.state.encoders['dept_encoder'], input_data['dept_id'])
+    input_data['item_id'] = safe_transform(app.state.encoders['item_encoder'], input_data['item_id'])
+    input_data['store_id'] = safe_transform(app.state.encoders['store_encoder'], input_data['store_id'])
+    input_data['state_id'] = safe_transform(app.state.encoders['state_encoder'], input_data['state_id'])
+    input_data['cat_id'] = safe_transform(app.state.encoders['cat_encoder'], input_data['cat_id'])
+    input_data['dept_id'] = safe_transform(app.state.encoders['dept_encoder'], input_data['dept_id'])
 
     expected_columns = ['item_id', 'store_id', 'dept_id', 'cat_id', 'state_id', 'day', 'month', 'year']
-    new_input_data[numerical_columns] = scaler.transform(new_input_data[expected_columns])
-    return new_input_data
+    input_data[numerical_columns] = scaler.transform(input_data[expected_columns])
+    return input_data
 
 # Forecast function for total sales across all stores and items
 def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:

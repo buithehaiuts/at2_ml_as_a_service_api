@@ -56,6 +56,14 @@ def validate_date(date_str: str) -> bool:
     except ValueError:
         return False
 
+def safe_transform(encoder, data):
+    try:
+        return encoder.transform(data)
+    except ValueError as e:
+        print(f"Warning: {e}")
+        # Optionally handle unseen categories here (e.g., return a default value or np.nan)
+        return np.full(data.shape, -1)
+        
 # On startup, load all models and encoders
 @app.on_event("startup")
 async def startup_event():
@@ -187,10 +195,16 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
         'month': [month],
         'year': [year]
     })
-    
-    expected_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id', 'day', 'month', 'year']
-    input_data = input_data[expected_columns] 
-    return input_data
+
+    new_input_data['item_id'] = safe_transform(item_encoder, input_data['item_id'])
+    new_input_data['store_id'] = safe_transform(store_encoder, input_data['store_id'])
+    new_input_data['state_id'] = safe_transform(state_encoder, input_data['state_id'])
+    new_input_data['cat_id'] = safe_transform(cat_id_encoder, input_data['cat_id'])
+    new_input_data['dept_id'] = safe_transform(dept_id_encoder, input_data['dept_id'])
+
+    expected_columns = ['item_id', 'store_id', 'dept_id', 'cat_id', 'state_id', 'day', 'month', 'year']
+    new_input_data[numerical_columns] = scaler.transform(new_input_data[expected_columns])
+    return new_input_data
 
 # Forecast function for total sales across all stores and items
 def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:

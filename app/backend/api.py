@@ -219,7 +219,7 @@ async def predict_item_sales(
     store_id: str = Query(..., description="Store ID for the specific location", enum=store_ids),
     state_id: str = Query(..., description="State ID for the location", enum=state_ids),
     cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),
-    dept_id: str = Query(..., description="Department ID for the product", enum=dept_ids),
+    dept_id: str = Query(..., description="Department ID for the product", enum=dept_ids)):
 
     # Validate the input date
     if not validate_date(date):

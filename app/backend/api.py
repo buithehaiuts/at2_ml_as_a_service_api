@@ -63,58 +63,66 @@ def safe_transform(encoder, data):
         print(f"Warning: {e}")
         # Optionally handle unseen categories here (e.g., return a default value or np.nan)
         return np.full(data.shape, -1)
-        
-# On startup, load all models and encoders
-@app.on_event("startup")
+
+
+@app.on_event("startup")        
 async def startup_event():
     """Load models and encoders during startup."""
+    
+    # Initialize app state
+    app.state.models = {}
+    app.state.encoders = {}
+
     # Define model file paths using Path
     model_files = {
-        'prophet': 'models/prophet.pkl',
-        'prophet_event': 'models/prophet_event.pkl',
-        'prophet_holiday': 'models/prophet_holiday.pkl',
-        'prophet_month': 'models/prophet_month.pkl',
-        'predictive_lgbm': 'models/predictive_lgbm.pkl'
+        'prophet': Path('models/prophet.pkl').resolve(),
+        'prophet_event': Path('models/prophet_event.pkl').resolve(),
+        'prophet_holiday': Path('models/prophet_holiday.pkl').resolve(),
+        'prophet_month': Path('models/prophet_month.pkl').resolve(),
+        'predictive_lgbm': Path('models/predictive_lgbm.pkl').resolve()
     }
     
     for model_name, model_path in model_files.items():
-        model_path = Path(model_path).resolve()
         if model_path.exists():
             try:
                 if model_name == 'predictive_lgbm':
                     with open(model_path, 'rb') as f:
                         model, scaler = pickle.load(f)  
                         app.state.models[model_name] = {'model': model, 'scaler': scaler}
-                    logger.info(f"{model_name} model and scaler loaded successfully.")
+                    logger.info(f"{model_name} model and scaler loaded successfully from {model_path}.")
                 else:
                     app.state.models[model_name] = load_model(str(model_path))
-                    logger.info(f"{model_name} model loaded successfully.")
+                    logger.info(f"{model_name} model loaded successfully from {model_path}.")
+            except FileNotFoundError:
+                logger.error(f"Model file not found: {model_path}.")
+            except pickle.UnpicklingError:
+                logger.error(f"Failed to unpickle model: {model_name} from {model_path}.")
             except Exception as e:
                 logger.error(f"Error loading {model_name}: {str(e)}")
         else:
             logger.warning(f"Model file does not exist: {model_path}")
-            
+
     # Load encoders
     encoder_files = {
-        'item_id': 'app/backend/item_encoder.pkl',
-        'store_id': 'app/backend/store_encoder.pkl',
-        'state_id': 'app/backend/state_encoder.pkl',
-        'cat_id': 'app/backend/cat_id.pkl',
-        'dept_id': 'app/backend/dept_id_encoder.pkl'
+        'item_encoder': Path('app/backend/item_encoder.pkl').resolve(),
+        'store_encoder': Path('app/backend/store_encoder.pkl').resolve(),
+        'state_encoder': Path('app/backend/state_encoder.pkl').resolve(),
+        'cat_encoder': Path('app/backend/cat_encoder.pkl').resolve(),
+        'dept_encoder': Path('app/backend/dept_encoder.pkl').resolve()
     }
 
     for encoder_name, encoder_path in encoder_files.items():
-        encoder_path = Path(encoder_path).resolve()
-        if encoder_path.exists():
-            try:
-                with open(str(encoder_path), 'rb') as f:
-                    app.state.encoders[encoder_name] = pickle.load(f)
-                logger.info(f"{encoder_name} encoder loaded successfully.")
-            except Exception as e:
-                logger.error(f"Error loading {encoder_name} encoder from {encoder_path}: {str(e)}")
-        else:
-            logger.warning(f"Encoder file does not exist: {encoder_path}")
-
+        try:
+            with open(encoder_path, 'rb') as f:
+                app.state.encoders[encoder_name] = pickle.load(f)
+            logger.info(f"{encoder_name} loaded successfully from {encoder_path}.")
+        except FileNotFoundError:
+            logger.error(f"Encoder file not found: {encoder_path}.")
+        except pickle.UnpicklingError:
+            logger.error(f"Failed to unpickle encoder: {encoder_name} from {encoder_path}.")
+        except Exception as e:
+            logger.error(f"Error loading {encoder_name}: {str(e)}")
+            
 @app.get("/")
 async def read_root():
     """Return project objectives and API details."""
@@ -184,7 +192,6 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
     month = date_obj.month
     year = date_obj.year
     
-
     # Create a DataFrame for input
     input_data = pd.DataFrame({
         'item_id': [item_id],
@@ -196,17 +203,13 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
         'month': [month],
         'year': [year]
     })
-    item_encoder=pickle.load('app/backend/item_encoder.pkl')
-    store_encoder=pickle.load('app/backend/store_encoder.pkl')
-    state_encoder=pickle.load('app/backend/state_encoder.pkl')
-    cat_encoder=pickle.load('app/backend/cat_encoder.pkl')
-    dept_encoder=pickle.load('app/backend/dept_encoder.pkl')
     
-    new_input_data['item_id'] = safe_transform(item_encoder, input_data['item_id'])
-    new_input_data['store_id'] = safe_transform(store_encoder, input_data['store_id'])
-    new_input_data['state_id'] = safe_transform(state_encoder, input_data['state_id'])
-    new_input_data['cat_id'] = safe_transform(cat_id_encoder, input_data['cat_id'])
-    new_input_data['dept_id'] = safe_transform(dept_id_encoder, input_data['dept_id'])
+    # Transform categorical columns using encoders from app state
+    new_input_data['item_id'] = safe_transform(app.state.encoders['item_encoder'], input_data['item_id'])
+    new_input_data['store_id'] = safe_transform(app.state.encoders['store_encoder'], input_data['store_id'])
+    new_input_data['state_id'] = safe_transform(app.state.encoders['state_encoder'], input_data['state_id'])
+    new_input_data['cat_id'] = safe_transform(app.state.encoders['cat_encoder'], input_data['cat_id'])
+    new_input_data['dept_id'] = safe_transform(app.state.encoders['dept_encoder'], input_data['dept_id'])
 
     expected_columns = ['item_id', 'store_id', 'dept_id', 'cat_id', 'state_id', 'day', 'month', 'year']
     new_input_data[numerical_columns] = scaler.transform(new_input_data[expected_columns])

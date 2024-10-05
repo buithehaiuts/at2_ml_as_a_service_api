@@ -256,11 +256,11 @@ def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, An
 @app.get("/sales/stores/items/")
 async def predict_item_sales(
     date: str = Query(..., description="Date for prediction in YYYY-MM-DD format"),
-    item_id: str = Query(..., description="Item ID for the product"),
-    store_id: str = Query(..., description="Store ID for the specific location"),
-    state_id: str = Query(..., description="State ID for the location"),
-    cat_id: str = Query(..., description="Category ID for the product"),
-    dept_id: str = Query(..., description="Department ID for the product"),
+    item_id: str = Query(..., description="Item ID for the product", enum=item_ids),
+    store_id: str = Query(..., description="Store ID for the specific location", enum=store_ids),
+    state_id: str = Query(..., description="State ID for the location", enum=state_ids),
+    cat_id: str = Query(..., description="Category ID for the product", enum=cat_ids),
+    dept_id: str = Query(..., description="Department ID for the product", enum=dept_ids),
 ) -> SalesResponse:
     """Predicts sales for a specific store and item on a given date."""
     

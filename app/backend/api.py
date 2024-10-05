@@ -177,7 +177,7 @@ def predict_sales(scaler,model, input_data):
     input_data_scaled = scaler.transform(input_data)
     # Prepare input data (make sure to preprocess it similarly to the training data)
     predicted_sales = model.predict(input_data_scaled)
-    return predicted_sales if isinstance(predictions, np.float64) else predictions.tolist()
+    return predicted_sales if isinstance(predicted_sales, np.float64) else predicted_sales.tolist()
 
 def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
     # Convert categorical features to numerical (example using hash encoding)

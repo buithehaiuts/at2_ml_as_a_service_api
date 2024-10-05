@@ -173,36 +173,13 @@ async def health_check():
     return HealthCheck(status="healthy")
 
 # Prediction function for sales using the predictive model
-def predict_sales(model_info: dict, input_data: pd.DataFrame) -> List[float]:
+def predict_sales(model_info: dict, input_data):
     """Make a prediction using the LightGBM model and scaler."""
     model, scaler = model_info  # Unpack model and scaler from the tuple
-    
-    if model is None or scaler is None:
-        raise ValueError("Model or scaler not loaded")
-
-    # Ensure the input data is properly formatted
-    required_columns = ['item_id', 'store_id', 'state_id', 'cat_id', 'dept_id', 'day', 'month', 'year']
-    missing_columns = [col for col in required_columns if col not in input_data.columns]
-    
-    if missing_columns:
-        raise ValueError(f"Missing columns in input data: {', '.join(missing_columns)}")
-    
+    input_data_scaled = scaler.transform(input_data)
     # Prepare input data (make sure to preprocess it similarly to the training data)
-    X = input_data[required_columns].copy()
-
-    # Encode categorical features
-    for col in required_columns:
-        if col in app.state.encoders:
-            encoder = app.state.encoders[col]
-            X[col] = encoder.transform(X[col])  # Use the encoder to transform the feature
-
-    # Scale the features using the scaler
-    X_scaled = scaler.transform(X)
-
-    # Perform prediction using the scaled input data
-    predictions = model.predict(X_scaled)
-
-    return predictions.tolist()
+    predicted_sales = model.predict(input_data_scaled)
+    return predicted_sales[0]
 
 def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
     # Convert categorical features to numerical (example using hash encoding)
@@ -230,7 +207,7 @@ def prepare_input_data(item_id, store_id, state_id, cat_id, dept_id, date):
         year
     ]])
     
-    return input_data  # Return as a 2D array
+    return input_data.reshape(1, -1)  # Return as a 2D array
 
 # Forecast function for total sales across all stores and items
 def forecast_sales(model, start_date: str, period: int = 7) -> List[Dict[str, Any]]:
@@ -275,7 +252,7 @@ async def predict_item_sales(
     try:
         # Predict sales using the loaded LightGBM model
         model_info = app.state.models['predictive_lgbm']
-        predictions = predict_sales(model_info, pd.DataFrame(input_data))
+        predictions = predict_sales(model_info, input_data)
 
         # Prepare response
         return SalesResponse(sales=[Sale(id=i, amount=pred) for i, pred in enumerate(predictions)])
